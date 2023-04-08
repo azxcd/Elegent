@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>试卷</title>
+    <link href="/static/css/bootstrap.min.css" type="text/css" rel="stylesheet">
+    <script src="/static/js/jquery.js"></script>
+</head>
+<div class="well" style="background-color: #faf2cc  ">
+    <body >
+
+    <div class="well" style="background-color: #fcf8e3 ">
+        <div name="information" class="container">
+            <h1 align="center">小测内容</h1>
+        </div>
+    </div>
+{#    显示所有的题目#}
+    <div class="well" style="background-color:  #fcf8e3">
+{#        这里是选择题#}
+        <div class="container" name="fillChoice" id="choice">
+            <h4>
+                <form role="form" class="container">
+                    <strong><p>一&nbsp;&nbsp;选择题</p></strong>
+                </form>
+            </h4>
+            {% for item in choice.Content %}
+                <form role="form" class="container">
+                <p style="white-space:pre-line;" class="text-left">{{ forloop.counter }}.{{ item }}</p>
+                <div class="form-group col-xs-3 " id={{ forloop.counter }}choice>
+                    <input type="text" class="form-control" name="fill_choice"/>
+                </div>
+                </form>
+            {% endfor %}
+            <div>
+                <button type="button" style="margin-top: 10px"id="button_choice">提交</button>
+            </div>
+        </div>
+{#    这里是填空题#}
+        <div class="container" name="fillBlank">
+            <h4>
+                <form role="form" class="container">
+                    <strong><p>二&nbsp;&nbsp;填空题</p></strong>
+                </form>
+            </h4>
+            {% for item in blank.Content %}
+                <form role="form" class="container">
+                <p style="white-space:pre-line;" class="text-left">{{ forloop.counter }}.{{ item }}</p>
+                <div class="form-group col-xs-3 " id={{ forloop.counter }}blank>
+                    <input type="text" class="form-control" name="fill_blank"/>
+                </div>
+                </form>
+            {% endfor %}
+            <div>
+                <button type="button" style="margin-top: 10px"id="button_blank">提交</button>
+            </div>
+        </div>
+{#    这里是编程题#}
+        <div class="container" name="fillCode">
+            <h4>
+                <form role="form" class="container">
+                    <strong><p>三&nbsp;&nbsp;编程题</p></strong>
+                </form>
+            </h4>
+            {% for item in code.Content %}
+                <form role="form" class="container">
+                <p style="white-space:pre-line;" class="text-left">{{ forloop.counter }}.{{ item }}</p>
+                <div class="form-group col-xs-3 " >
+                    <textarea type="text" class="form-control" name="fill_code" style="width: 600px;height: 200px" id={{ forloop.counter }}code>def fact(x):</textarea>
+                    <div>
+                        <button type="button" style="margin-top: 10px" id="button_code" onclick="runcode({{ forloop.counter }})">运行</button>
+                    </div>
+                </div>
+                </form>
+            {% endfor %}
+        </div>
+    </div>
+    <div align="center">
+{#        <input type="button" value="判卷" id="download_text" onclick="downloadTxt({{ content_list }},'test.txt')">#}
+    </div>
+
+    </body>
+</div>
+<script type="text/javascript">
+    var codeanswer = {{code.Answer|safe}}
+    function runcode(numid) {
+        let answer_text = codeanswer[numid-1]
+        let code_text = document.getElementById(numid+'code').value
+        console.log(code_text)
+        $.ajax
+            ({
+                url: "/teacher/code",
+                dataType: "json",
+                type: "POST",
+                data: {
+                        code_text: code_text,
+                        answer_text: answer_text,
+                      },
+                headers: { "X-CSRFToken": "{{ csrf_token }}" },//Django中表单提交都需要csrf验证
+                success:function(res){
+                    {#res=JSON.parse(res);#}
+                    console.log(res['data']);  //在console中查看数据
+                },
+                error:function(){
+                    alert('failed!');
+                },
+            });
+    }
+      //textarea支持tab缩进
+    $("textarea").on(
+        'keydown',
+        function(e) {
+            if (e.keyCode == 9) {
+                e.preventDefault();
+                var indent = '\t';
+                var start = this.selectionStart;
+                var end = this.selectionEnd;
+                var selected = window.getSelection().toString();
+                selected = indent + selected.replace(/\n/g, '\n' + indent);
+                this.value = this.value.substring(0, start) + selected
+                        + this.value.substring(end);
+                this.setSelectionRange(start + indent.length, start
+                        + selected.length);
+            }
+    })
+    {#选择题核对答案#}
+    $("#button_choice").on("click",function () {
+        let answer = {{ choice.Answer|safe }};
+        {#console.log(answer);#}
+{#        用jquery获得用户输入的每个答案#}
+        let inputArr = new Array();
+        $('input[name="fill_choice"]').each(function(){
+            inputArr.push($(this).val());//添加至数组
+        });
+       $.ajax
+            ({
+                url: "/teacher/choice",
+                dataType: "json",
+                type: "POST",
+                data: {
+                        input_text: JSON.stringify(inputArr),
+                        answer_text: JSON.stringify(answer),
+                      },
+                headers: { "X-CSRFToken": "{{ csrf_token }}" },//Django中表单提交都需要csrf验证
+                success:function(res){
+                    {#res=JSON.parse(res);#}
+                    console.log(res['data']);  //在console中查看数据
+                    for (let i=0;i<answer.length;i++){
+                        if (res['data']['choice_type'][i]=='1'){
+                            $("<div style='color: #01a7b3'>正确答案是"+answer[i]+"</div>").appendTo("#"+res['data']['choice_index'][i]+"choice")
+                        } else {
+                            $("<div style='color: #a10000'>正确答案是"+answer[i]+"</div>").appendTo("#"+res['data']['choice_index'][i]+"choice")
+                        }
+                    }
+                },
+                error:function(){
+                    alert('failed!');
+                },
+            });
+        {#for (let i=1;i<answer.length+1;i++){#}
+        {#    console.log(inputArr[i-1]==answer[i-1].replace(/\s*/g,""))#}
+        {#    if (inputArr[i-1]==answer[i-1].replace(/\s*/g,"")){#}
+        {#        $("<div style='color: #01a7b3'>正确答案是"+answer[i-1]+"</div>").appendTo("#"+i+"choice")#}
+        {#    } else {#}
+        {#        $("<div style='color: #a10000'>正确答案是"+answer[i-1]+"</div>").appendTo("#"+i+"choice")#}
+        {#    }#}
+        {# }#}
+     });
+    {#填空题核对答案#}
+    $("#button_blank").on("click",function () {
+        let answer = {{ blank.Answer|safe }};
+        {#console.log(answer);#}
+{#        用jquery获得用户输入的每个答案#}
+        let inputArr = new Array();
+        $('input[name="fill_blank"]').each(function(){
+            inputArr.push($(this).val());//添加至数组
+        });
+        $.ajax
+            ({
+                url: "/teacher/blank",
+                dataType: "json",
+                type: "POST",
+                data: {
+                        input_text: JSON.stringify(inputArr),
+                        answer_text: JSON.stringify(answer),
+                      },
+                headers: { "X-CSRFToken": "{{ csrf_token }}" },//Django中表单提交都需要csrf验证
+                success:function(res){
+                    for (let i=0;i<answer.length;i++){
+                        if (res['data']['blank_type'][i]=='1'){
+                            $("<div style='color: #01a7b3'>正确答案是"+answer[i]+"</div>").appendTo("#"+res['data']['blank_index'][i]+"blank")
+                        } else {
+                            $("<div style='color: #a10000'>正确答案是"+answer[i]+"</div>").appendTo("#"+res['data']['blank_index'][i]+"blank")
+                        }
+                    }
+                },
+                error:function(){
+                    alert('failed!');
+                },
+            });
+        {#for (let i=1;i<answer.length+1;i++){#}
+            {#console.log(inputArr[i-1]==answer[i-1].replace(/\s*/g,""))#}
+        {#    if (inputArr[i-1]==answer[i-1].replace(/\s*/g,"")){#}
+        {#        $("<div style='color: #01a7b3'>正确答案是"+answer[i-1]+"</div>").appendTo("#"+i+"blank")#}
+        {#    } else {#}
+        {#        $("<div style='color: #a10000'>正确答案是"+answer[i-1]+"</div>").appendTo("#"+i+"blank")#}
+        {#    }#}
+        {# }#}
+    });
+{#    将数据传到python的后端并进行下载#}
+function downloadTxt(text, fileName){
+    let text_content = ''
+    alert(text.length)
+    {#给每个题目分别加一个换行符#}
+    for(let i =0;i<text.length;i++){
+        text_content = text_content + text[i]+'\n'
+    }
+    let element = document.createElement('a')
+    element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text_content))
+    element.setAttribute('download', fileName)
+    element.style.display = 'none'
+    element.click()
+}
+</script>
+</html>

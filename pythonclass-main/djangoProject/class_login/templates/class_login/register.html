@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>修改密码</title>
+</head>
+<body>
+     <div style="margin: 15% 40%;">
+        <h1>修改密码</h1>
+        <form action="register" method="post">
+            {% csrf_token %}
+            <p>
+                <label for="id_username">学号：</label>
+                <input type="text" id="id_username" name="username" placeholder="学号" autofocus required />
+            </p>
+            <p>
+                <label for="id_password">原本密码：</label>
+                <input type="password" id="old_password" placeholder="原本密码" name="old_password" required >
+            </p>
+            <p>
+                <label for="id_password">新密码：</label>
+                <input type="password" id="new_password" placeholder="新密码" name="new_password1" required >
+            </p>
+            <p>
+                <label for="id_password">重新输入密码：</label>
+                <input type="password" id="new_password" placeholder="重新输入" name="new_password2" required >
+            </p>
+            <input type="submit" value="确定">
+        </form>
+    </div>
+</body>
+{% if warning %}
+<script>
+    var warning = {{warning|safe}}
+    if(warning=='notsame'){
+         alert('两次密码输入不一致')
+    }
+    if(warning=='worng'){
+         alert('账号或密码错误')
+    }
+</script>
+{% endif %}
+
+</html>
+

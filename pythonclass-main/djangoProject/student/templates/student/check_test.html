@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>试卷</title>
+    <link href="/static/css/bootstrap.min.css" type="text/css" rel="stylesheet">
+    <script src="/static/js/jquery.js"></script>
+    <style type="text/css">
+        .loadingcss{
+                position:fixed;
+                height: 100%;
+                width: 100%;
+                top: 0;
+                left: 0%;
+                top: 0%;
+                background-color: rgba(0,0,0,0.4);/*显示遮罩层背景颜色和透明度*/
+                /*如果上边的效果不理想可以分开实现背景颜色的透明度,背景颜色和透明度可自行调节*/
+                /*
+                    background-color: #ccc;
+                    filter:alpha(Opacity=80);-moz-opacity: 0.5;opacity: 0.5;
+                */
+            }
+    </style>
+    <style>
+        .btn-blue{
+            margin: 10px;
+            background-color: #3498db;
+            width: 80px;
+            height: 45px;
+            border-radius: 5px;
+            border: none;
+            font-size: 15px;
+            font-family: 'Roboto';
+	        text-align: center;
+            text-transform: uppercase;
+            color: #FFF;
+            user-select: none;
+        }
+
+        .btn-blue span {
+            font-size: 15px;
+            cursor: pointer;
+            display: inline-block;
+            position: relative;
+            transition: 0.5s;
+        }
+
+        .btn-blue span:after {
+            content: '»';
+            position: absolute;
+            opacity: 0;
+            top: 0;
+            right: -15px;
+            transition: 0.5s;
+        }
+
+        .btn-blue:hover {
+            cursor: pointer;
+            opacity: 1;
+            transition: 0.5s;
+            background-color: #0055b3;
+        }
+
+        .btn-blue:hover span {
+            padding-right: 15px;
+        }
+
+        .btn-blue:hover span:after {
+            opacity: 1;
+            right: 0;
+        }
+
+        .spangreen {
+            color: green;
+            padding: 5px;
+        }
+
+        .spanred {
+            color: red;
+            padding: 5px;
+        }
+
+    </style>
+</head>
+<body style="background-color: #9FB6CD; background-image: linear-gradient(#9FB6CD, #3498db); min-height: 900px">
+<div class="well" style="display: flex; flex-flow: row wrap; justify-content: center; align-content: space-between">
+{#  小测抬头#}
+    <div class="well" style="background-color: white; width: 95%; border-radius: 10px">
+        <div name="information" class="container">
+            {% for item in testname.Name %}
+                <h1 align="center">{{ item }}小测内容</h1>
+                {% if pagetype == 'finish' %}
+                    <h2 align="center" style="font-family: 'Roboto'">
+                        <span class="spangreen">{{ score.Correct }}</span>
+                        <span>/</span>
+                        <span class="spanred">{{ score.Error }}</span>
+                    </h2>
+                {% endif %}
+            {% endfor %}
+            <h2 id="num" face="impact" align="right"></h2>
+        </div>
+    </div>
+{#  小测内容#}
+    <div class="well" style="margin-top: 10px; background-color: white; width: 95%; border-radius: 10px">
+<!--      这里是选择题-->
+        <div class="container" name="fillChoice" id="choice" style="padding: 5px; padding-left: 15px">
+            {% if choice.Content|length > 0%}
+                <h3>
+                    <form role="form" class="container">
+                        <strong><p>选择题</p></strong>
+                    </form>
+                </h3>
+            {% endif %}
+            {% for item in choice.Content %}
+                <form role="form" class="container">
+                {% if pagetype == 'infinish' %}
+                    <p style="white-space:pre-line;" class="text-left">{{ forloop.counter }}.{{ item }}</p>
+                    <div class="form-group col-xs-3 " id={{ forloop.counter }}choice>
+                        <input type="text" class="form-control" name="fill_choice"/>
+                    </div>
+                {% elif item.Correct == '0' %}
+                    <p style="white-space:pre-line;" class="text-left">{{ forloop.counter }}.{{ item.Content }}</p>
+                    <p style="color: #6b6b6b">你的答案：</p>
+                    <P style="color:#6b6b6b;">{{ item.Record }}</P>
+                    <div style='color: #ff0000'>错误</div>
+                {% elif item.Correct == '1' %}
+                    <p style="white-space:pre-line;" class="text-left">{{ forloop.counter }}.{{ item.Content }}</p>
+                    <p style="color: #6b6b6b">你的答案：</p>
+                    <P style="color:#6b6b6b;">{{ item.Record }}</P>
+                    <div style='color: #00cc00'>正确</div>
+                {% endif %}
+                </form>
+            {% endfor %}
+<!--            <div>-->
+<!--                <button type="button" style="margin-top: 10px"id="button_choice">提交</button>-->
+<!--            </div>-->
+        </div>
+<!--    这里是填空题-->
+        <div class="container" name="fillBlank" style="padding: 5px; padding-left: 15px;">
+            {% if blank.Content|length > 0 %}
+                <h3>
+                    <form role="form" class="container">
+                        <strong><p>填空题</p></strong>
+                    </form>
+                </h3>
+            {% endif %}
+            {% for item in blank.Content %}
+                <form role="form" class="container">
+                    {% if pagetype == 'infinish' %}
+                        <p style="white-space:pre-line;" class="text-left">{{ forloop.counter }}.{{ item }}</p>
+                        <div class="form-group col-xs-3 " id={{ forloop.counter }}blank>
+                            <input type="text" class="form-control" name="fill_blank"/>
+                        </div>
+                    {% elif item.Correct == '0' %}
+                        <p style="white-space:pre-line;" class="text-left">{{ forloop.counter }}.{{ item.Content }}</p>
+                        <p style="color: #6b6b6b">你的答案：</p>
+                        <P style="color:#6b6b6b;">{{ item.Record }}</P>
+                        <div style='color: #ff0000'>错误</div>
+                    {% elif item.Correct == '1' %}
+                        <p style="white-space:pre-line;" class="text-left">{{ forloop.counter }}.{{ item.Content }}</p>
+                        <p style="color: #6b6b6b">你的答案：</p>
+                        <P style="color:#6b6b6b;">{{ item.Record }}</P>
+                        <div style='color: #00cc00'>正确</div>
+                    {% endif %}
+                </form>
+            {% endfor %}
+        </div>
+<!--    这里是编程题-->
+        {#    模拟练习不做编程题#}
+        {% if mock != 'yes' %}
+            <div class="container" name="fillCode" style="padding: 5px; padding-left: 15px">
+                {% if code.Content|length > 0%}
+                    <h3>
+                        <form role="form" class="container">
+                            <strong><p>编程题</p></strong>
+                        </form>
+                    </h3>
+                {% endif %}
+                {% for item in code.Content %}
+                    <form role="form" class="container">
+                    {% if pagetype == 'infinish' %}
+                        <p style="white-space:pre-line;" class="text-left">{{ forloop.counter }}.{{ item }}</p>
+                        <div class="form-group col-xs-3 " >
+                                <textarea type="text" class="form-control" name="fill_code" style="width: 600px;height: 200px" id={{ forloop.counter }}code></textarea>
+                        </div>
+    {#            每个编程题添加运行按钮        #}
+                        <div>
+                            <button type="button" class="btn-blue" onclick="runcode({{ forloop.counter }})">
+                                <span>运行</span>
+                            </button>
+                        </div>
+                    {% endif %}
+                    {% if pagetype == 'finish' %}
+                        <p style="white-space:pre-line;" class="text-left">{{ forloop.counter }}.{{ item.Content }}</p>
+                        <p style="color: #6b6b6b">你的答案：</p>
+                        <textarea type="text" class="form-control" style="width: 600px;height: 200px" readonly>{{ item.Record }}</textarea>
+                        {% if item.Correct == '0' %}
+                            <div style='color: #ff0000'>错误</div>
+                        {% elif item.Correct == '1' %}
+                            <div style='color: #00cc00'>正确</div>
+                        {% endif %}
+                    {% endif %}
+                    </form>
+                {% endfor %}
+            </div>
+        {% endif %}
+{#    这里是程序填空题#}
+        {% if mock != 'yes' %}
+                <div class="container" name="fillBlank_Code" style="padding: 5px; padding-left: 15px">
+                {% if blank_code.Content|length > 0 %}
+                    <h3>
+                        <form role="form" class="container">
+                            <strong><p>程序填空题</p></strong>
+                        </form>
+                    </h3>
+                {% endif %}
+                {% for item in blank_code.Content %}
+                    <form role="form" class="container">
+                    {% if pagetype == 'infinish' %}
+                        <p style="white-space:pre-line;" class="text-left">{{ forloop.counter }}.{{ item }}</p>
+                        <div class="form-group col-xs-3 " >
+                                <textarea type="text" class="form-control" name="fill_blank_code" style="width: 600px;height: 200px" id={{ forloop.counter }}blank_code></textarea>
+                        </div>
+    {#            每个程序填空题添加运行按钮        #}
+                        <div>
+                            <button type="button" class="btn-blue" onclick="runblank_code({{ forloop.counter }})">
+                                <span>运行</span>
+                            </button>
+                        </div>
+                    {% endif %}
+                    {% if pagetype == 'finish' %}
+                        <p style="white-space:pre-line;" class="text-left">{{ forloop.counter }}.{{ item.Content }}</p>
+                        <p style="color: #6b6b6b">你的答案：</p>
+                        <textarea type="text" class="form-control" style="width: 600px;height: 200px" readonly>{{ item.Record }}</textarea>
+                        {% if item.Correct == '0' %}
+                            <div style='color: #ff0000'>错误</div>
+                        {% elif item.Correct == '1' %}
+                            <div style='color: #00cc00'>正确</div>
+                        {% endif %}
+                    {% endif %}
+                    </form>
+                {% endfor %}
+            </div>
+        {% endif %}
+        <div style="display: flex; flex-display:row; justify-content: flex-start; margin-right: 10px; margin-bottom: 20px; padding-left: 10px">
+{#          这里是提交按钮#}
+            {% if pagetype == 'infinish' %}
+                <div>
+                    <button class="btn-blue" type="button" id="button_all">
+                        <span>提交</span>
+                    </button>
+                </div>
+{#                等待界面#}
+                <span id="loading" class="loadingcss">
+                    <p style='color:#ffffff;font-size:14px;'>不要进行别的操作,请稍后……</p>
+                </span>
+            {% endif %}
+{#          这里是返回按钮#}
+            <div>
+                {% if mock %}
+                    <button id="button_back" class="btn-blue" type="button" onclick="button_back()" value="{{ mock }}">
+                        <span>返回</span>
+                    </button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div align="center">
+    </div>
+</div>
+</body>
+<script type="text/javascript">
+    // 隐藏加载等待界面
+    $(function(){
+        $("#loading").hide();
+    });
+    // 倒计时的板块
+    window.onload=function(){         //一进该页面就加载以下方法
+		setInterval('countDown()',1000);    //一般秒设置为参数为1000
+		}
+		sec = {{ limittime|safe }}
+        // console.log(sec)
+        function countDown() {        //倒计时的方法
+		    if (sec>0){
+		        num.innerHTML = '倒计时'+sec--+'秒';
+            }
+		    else if (sec<0){
+		        num.innerHTML = ' ';
+            }
+		    else{
+                window.location.href="/student/finish_test"
+            }
+        }
+    // 在js中接收小测的名称
+    test_name = {{ testname.Name|safe}}
+    // console.log(test_name[0])
+// 编程题中使textarea支持tab缩进
+    $("textarea").on(
+        'keydown',
+        function(e) {
+            if (e.keyCode == 9) {
+                e.preventDefault();
+                var indent = '\t';
+                var start = this.selectionStart;
+                var end = this.selectionEnd;
+                var selected = window.getSelection().toString();
+                selected = indent + selected.replace(/\n/g, '\n' + indent);
+                this.value = this.value.substring(0, start) + selected
+                        + this.value.substring(end);
+                this.setSelectionRange(start + indent.length, start
+                        + selected.length);
+            }
+    })
+// 编程题的运行按钮
+    function runcode(numid) {
+        let codeanswer = {{code.Answer|safe}};
+        let codecontents = {{ code.Content|safe }};
+        // 编程题答案的测试样例
+        let answer_text = codeanswer[numid-1];
+        // 编程题的内容
+        let contents_text = codecontents[numid-1];
+        // 编程题的代码
+        let code_text = document.getElementById(numid+'code').value
+        console.log(answer_text)
+        $.ajax
+            ({
+                url: "/student/code",
+                dataType: "json",
+                type: "POST",
+                data: {
+                        test_name: JSON.stringify(test_name[0]),
+                        code_text: code_text,
+                        answer_text: answer_text,
+                        test_text: JSON.stringify(contents_text)
+                      },
+                headers: { "X-CSRFToken": "{{ csrf_token }}" },//Django中表单提交都需要csrf验证
+                success:function(res){
+                    console.log(res);
+                    // res=JSON.parse(res);
+                    // console.log(res);  //在console中查看数据
+                    if (res['data']=='1'){
+                        alert('结果正确')
+                    }
+                    if (res['data']=='0'){
+                        alert('运行失败')
+                    }
+                    if (res['data']=='2'){
+                        alert('结果出错')
+                    }
+                },
+                error:function(){
+                    alert('error!');
+                },
+            });
+    }
+// 编程题的运行按钮
+function runblank_code(numid) {
+    let blank_codeanswer = {{blank_code.Answer|safe}};
+    let blank_codecontents = {{ blank_code.Content|safe }};
+    // 编程题答案的测试样例
+    let answer_text = blank_codeanswer[numid-1];
+    // 编程题的内容
+    let contents_text = blank_codecontents[numid-1];
+    // 编程题的代码
+    let blank_code_text = document.getElementById(numid+'blank_code').value
+    $.ajax
+    ({
+        url: "/student/blank_code",
+        dataType: "json",
+        type: "POST",
+        data: {
+                test_name: JSON.stringify(test_name[0]),
+                blank_code_text: blank_code_text,
+                answer_text: answer_text,
+                test_text: JSON.stringify(contents_text)
+              },
+        headers: { "X-CSRFToken": "{{ csrf_token }}" },//Django中表单提交都需要csrf验证
+        success:function(res){
+            console.log(res);
+            // res=JSON.parse(res);
+            // console.log(res);  //在console中查看数据
+            if (res['data']=='1'){
+                alert('结果正确')
+            }
+            if (res['data']=='0'){
+                alert('运行失败')
+            }
+            if (res['data']=='2'){
+                alert('结果出错')
+            }
+        },
+        error:function(){
+            alert('error!');
+        },
+    });
+}
+
+// 提交小测核对答案
+$("#button_all").one("click",function () {
+    // {#获得填空题相关信息#}
+    let blank_contents = {{ blank.Content|safe }};
+    let blank_answer = {{ blank.Answer|safe }};
+    // {#获得选择题相关信息#}
+    let choice_contents = {{ choice.Content|safe }};
+    let choice_answer = {{ choice.Answer|safe }};
+    // {#获得编程题的相关信息#}
+    let code_answer = {{code.Answer|safe}};
+    let code_contents = {{ code.Content|safe }};
+    //获得程序填空题相关信息
+    let blank_code_answer = {{blank_code.Answer|safe}};
+    let blank_code_contents = {{ blank_code.Content|safe }};
+    // {#用jquery获得用户输入的每个填空题答案#}
+    let input_blank = new Array();
+    $('input[name="fill_blank"]').each(function(){
+        input_blank.push($(this).val());//添加至数组
+    });
+    // {#用jquery获得用户输入的每个选择题答案#}
+    let input_choice = new Array();
+    $('input[name="fill_choice"]').each(function(){
+        input_choice.push($(this).val());//添加至数组
+    });
+    // {#用jquery获得用户输入的每个编程题答案#}
+    let input_code = new Array();
+    $('textarea[name="fill_code"]').each(function(){
+        input_code.push($(this).val());//添加至数组
+    });
+    // {#用jquery获得用户输入的每个程序填空题答案#}
+    let input_blank_code = new Array();
+    $('textarea[name="fill_blank_code"]').each(function(){
+        input_blank_code.push($(this).val());//添加至数组
+    });
+    console.log(input_blank_code);
+   // {# 将数据传到后端#}
+   $.ajax
+        ({
+            // {#启动加载界面#}
+            // beforeSend:function(XMLHttpRequest){
+            //         var winNode = $("#loading");
+            //         //使遮罩层显示方法
+            //         winNode.show();
+            //         //解决按钮重复提交
+            //         $("button_all").removeAttr("onclick");
+            // },
+            url: "/student/homeworksubmit",
+            dataType: "json",
+            type: "POST",
+            data: {
+                    test_name: JSON.stringify(test_name[0]),
+                    blank_contents: JSON.stringify(blank_contents),
+                    blank_answer:JSON.stringify(blank_answer),
+                    input_blank:JSON.stringify(input_blank),
+                    choice_contents: JSON.stringify(choice_contents),
+                    choice_answer:JSON.stringify(choice_answer),
+                    input_choice:JSON.stringify(input_choice),
+                    code_contents: JSON.stringify(code_contents),
+                    code_answer:JSON.stringify(code_answer),
+                    input_code:JSON.stringify(input_code),
+                    blank_code_contents: JSON.stringify(blank_code_contents),
+                    blank_code_answer:JSON.stringify(blank_code_answer),
+                    input_blank_code:JSON.stringify(input_blank_code),
+                  },
+            headers: { "X-CSRFToken": "{{ csrf_token }}" },//Django中表单提交都需要csrf验证
+            success:function(res){
+
+                $("#loading").hide();
+                // 选择题给出结果
+                for (let i=0;i<choice_answer.length;i++){
+                    if (res['data']['choice_type'][i]=='1'){
+                        $("<div style='color: #00cc00'>正确</div>").appendTo("#"+res['data']['choice_index'][i]+"choice")
+                    } else {
+                        $("<div style='color: #ff0000'>错误</div>").appendTo("#"+res['data']['choice_index'][i]+"choice")
+                    }
+                 }
+                // 填空题给出结果
+                for (let i=0;i<blank_answer.length;i++){
+                    if (res['data']['blank_type'][i]=='1'){
+                        $("<div style='color: #00cc00'>正确</div>").appendTo("#"+res['data']['blank_index'][i]+"blank")
+                    } else {
+                        $("<div style='color: #ff0000'>错误</div>").appendTo("#"+res['data']['blank_index'][i]+"blank")
+                    }
+                }
+                // 编程题给出结果
+                for (let i=0;i<code_answer.length;i++){
+                   if (res['data']['code_type'][i]=='1'){
+                        $("<br><div style='color: #00cc00'>正确</div><br>").insertAfter("#"+res['data']['code_index'][i]+"code")
+                    } else {
+                        $("<br><div style='color: #ff0000'>错误</div><br>").insertAfter("#"+res['data']['code_index'][i]+"code")
+                    }
+                }
+                // 程序填空题给出结果
+                for (let i=0;i<blank_code_answer.length;i++){
+                   if (res['data']['blank_code_type'][i]=='1'){
+                        $("<br><div style='color: #00cc00'>正确</div><br>").insertAfter("#"+res['data']['blank_code_index'][i]+"blank_code")
+                    } else {
+                        $("<br><div style='color: #ff0000'>错误</div><br>").insertAfter("#"+res['data']['blank_code_index'][i]+"blank_code")
+                    }
+                }
+            },
+            error:function(){
+                $("#loading").hide();
+                alert('failed!');
+            },
+        });
+
+ });
+// 填空题核对答案
+// 将数据传到python的后端并进行下载
+function downloadTxt(text, fileName){
+    let text_content = ''
+    alert(text.length)
+    // 给每个题目分别加一个换行符
+    for(let i =0;i<text.length;i++){
+        text_content = text_content + text[i]+'\n'
+    }
+    let element = document.createElement('a')
+    element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text_content))
+    element.setAttribute('download', fileName)
+    element.style.display = 'none'
+    element.click()
+}
+function button_back(){
+flag = document.getElementById('button_back').value
+if (flag=='yes'){
+    window.location.href="/student/mock_test"
+}
+else {
+    window.location.href="/student/finish_test"
+}
+}
+</script>
+</html>

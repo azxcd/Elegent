@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="PublishConfigData" remoteFilesAllowedToDisappearOnAutoupload="false">
+    <serverData>
+      <paths name="120.79.170.202">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/home/sun/usr/local/python_projects/python_web/PythonClass" local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="root@47.112.144.254:22 password">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/home/sun/python_project/PythonClass" local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+    </serverData>
+  </component>
+</project>

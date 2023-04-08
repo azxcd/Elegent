@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>试卷</title>
+    <link href="/static/css/bootstrap.min.css" type="text/css" rel="stylesheet">
+</head>
+{#    这里是弹窗的格式#}
+<style>
+    .popup {
+        width: 100vw;
+        height: 150vh;
+        background-color: rgba(0, 0, 0, .5);
+        position: fixed;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        right: 0;
+        {#隐藏该元素 #}
+        display: none;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .popup-content {
+        width: 400px;
+        height: 200px;
+        background-color: #fff;
+        box-sizing: border-box;
+        padding: 10px 30px;
+        color: black;
+    }
+
+    .top {
+        width: 100%;
+        border-bottom: 1px solid black;
+    }
+
+    .info {
+        margin-top: 10px;
+    }
+</style>
+<div class="well" style="background-color: #faf2cc  ">
+    <body >
+
+    <div class="well" style="background-color: #fcf8e3 ">
+        <div name="information" class="container">
+            <h1 align="center">试卷</h1>
+        </div>
+    </div>
+{#    显示所有的题目#}
+    {#    如果点击节点之后的操作是修改，就会重新弹出新的弹窗#}
+    <div class="popup" id="popup"  >
+        <div class="popup-content" style="overflow: scroll;height: 300px" >
+            <div class="top">
+                <p>完善生成作业的信息</p>
+            </div>
+{#            修改知识节点的表单#}
+            <form id="popform_homework" style="margin-top: 10px" action="/teacher/create_homework" method="post">
+                {% csrf_token %}
+                时间限制:
+                <select name="timelimit">
+                    <option value="0">不限时</option>
+                    <option value="10">10min</option>
+                    <option value="20">20min</option>
+                    <option value="30">30min</option>
+                    <option value="40">40min</option>
+                    <option value="50">50min</option>
+                    <option value="60">60min</option>
+                </select>
+                <br><br>
+                <input type="text" name="title_list" style="display: none" value="{{ titles_list }}" onkeydown="if(event.keyCode===13){return false;}">
+                作业名称: <input type="text" name="title" onkeydown="if(event.keyCode===13){return false;}"><br><br>
+                截止日期: <input type="date" name="deadline" onkeydown="if(event.keyCode===13){return false;}"><br><br>
+                <input class="btn btn-primary" style="background-color:#4592fe ; padding:6px 38px" type="submit" value="提交">
+            </form>
+            <button class="btn btn-primary" style="margin-top: 10px ; background-color:#4592fe ; padding:6px 38px" onclick="hidePopup2(false)" >关闭</button>
+        </div>
+    </div>
+    <div class="well" style="background-color:  #fcf8e3">
+        <div class="container" name="fillBlankFirst">
+            <h4>
+                <form role="form" class="container">
+                    <strong><p>一&nbsp;&nbsp;题目</p></strong>
+                </form>
+                {% for item in content_list %}
+                    <form role="form" class="container">
+                    <p class="text-left">{{ item }}</p>
+                    <div class="form-group col-xs-3 ">
+                        <label class="col-sm-2 control-label"></label>
+                        <input type="text" class="form-control" name="fill_1" id="fill_1"/>
+                    </div>
+                    </form>
+                {% endfor %}
+            </h4>
+        </div>
+    </div>
+{#    显示所有的答案#}
+    <div class="well" style="background-color:  #fcf8e3">
+        <div class="container" name="fillBlankFirst">
+            <h4>
+                <form role="form" class="container">
+                    <strong><p>二&nbsp;&nbsp;答案</p></strong>
+                </form>
+                {% for item in answer_list %}
+                    <form role="form" class="container">
+                    <p class="text-left">{{ item }}</p>
+                    </form>
+                {% endfor %}
+            </h4>
+        </div>
+    </div>
+    <div align="center">
+        <input type="button" value="下载题目" id="download_text" onclick="downloadTxt({{ content_list }},'test.txt')">
+        <input type="button" value="下载答案" id="download_answer" onclick="downloadTxt({{ answer_list }},'answer.txt')">
+        <input type="button" value="生成作业" id="create_homework" value="" onclick="showPopup(this.value)">
+    </div>
+
+    </body>
+</div>
+<script type="text/javascript">
+{#    将数据传到python的后端并进行下载#}
+function downloadTxt(text, fileName){
+    let text_content = ''
+    alert(text.length)
+    {#给每个题目分别加一个换行符#}
+    for(let i =0;i<text.length;i++){
+        text_content = text_content + text[i]+'\n'
+    }
+    let element = document.createElement('a')
+    element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text_content))
+    element.setAttribute('download', fileName)
+    element.style.display = 'none'
+    element.click()
+}
+//给定一个值,使点 确定按钮 为 true,点其他为 false
+var isDelete = false;
+//显示弹窗函数，设置display为flex,把弹窗显示出来
+function showPopup(name) {
+    console.log(name)
+    document.getElementById("popup").style.display = "flex";
+};
+{#弹窗的关闭按钮#}
+function hidePopup2(x){
+    console.log(x)
+    if (x==false){
+        document.getElementById("popup").style.display = "none";
+    }
+    return false;
+}
+</script>
+</html>

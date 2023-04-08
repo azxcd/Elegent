@@ -1,0 +1,84 @@
+{% extends "teacher/navigate.html" %} {% block mainbody %}
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title></title>
+    <meta charset="utf-8" />
+    <script src="/static/js/echarts.js"></script>
+</head>
+<title>作业情况</title>
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+            <!--overview start-->
+            <div class="row">
+                <div class="col-md-12">
+                    <h4 class="page-header"><i class="fa fa-search"></i>班级学习情况</h4>
+                    <ol class="breadcrumb">
+                        <li><i class="fa fa-home"></i><a href="/teacher">主页</a></li>
+                        <li><i class="fa fa-search"></i>班级学习情况</li>
+                    </ol>
+                </div>
+            </div>
+            <br>
+                <div class = "col-md-12" style="width: 100%; float: left">
+                    <div class="panel panel-default ">
+                        <header class="panel-heading">
+                            学生学习情况
+                        </header>
+                        <div class="panel-body" style="width: 100%; overflow-x:scroll">
+                            <!--表头-->
+                            <div class="col-md-12">
+                                <div class="row" style="text-align: center; color: black; font-size: large; height: 40px; white-space: nowrap">
+                                    <div class="col-md-12" style="width: 20%; display: inline-block; text-align: center">学号</div>
+                                    <div class="col-md-12" style="width: 20%; display: inline-block; text-align: center">姓名</div>
+                                    <div class="col-md-12" style="width: 20%; display: inline-block; text-align: center">性别</div>
+                                    {% for testname in test_list %}
+                                        <div class="col-md-12" style="width: 20%; display: inline-block; text-align: center">{{ testname }} 得分</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                {% for key, value in stu_info.items %}
+                                    {# 学号--点击可跳转到stu_info #}
+                                    <div class="row" style="text-align: center; color: #6b6b6b; font-size: large; height: 40px; white-space: nowrap" type="button" onclick="GetStuInfo({{ key }})">
+                                        <div class="col-md-12" style="width: 20%; display: inline-block; text-align: center;background-color: #F5F5F5">{{ key }}</div>
+                                        {% for k, v in value.items %}
+                                            <div class="col-md-12" style="width: 20%; display: inline-block; text-align: center;background-color: #F5F5F5">{{ v }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class = "col-md-12" style="width: 100%; float: left">
+                    <div class="panel panel-default ">
+                        <header class="panel-heading">
+                            知识掌握情况
+                        </header>
+                        <div class = "panel-body ">
+                            <div class="col-md-12" style="text-align: center; color: black; font-size: medium">
+                                {% for key, value in mastery.items %}
+                                    <div class="row" style="width: 100%; border-bottom: 1px solid #9e9e9e; height: 100%">
+                                        <div class="col-md-12" style="width: 20%; float: left; text-align: center">{{ key }}:{{ value.val }}</div>
+                                        {% for key, val in value.knowledge.items %}
+                                            <div class="col-md-12" style="width: 20%; float: left; text-align: center">{{ key }}:{{ val }}</div>
+                                        {% endfor %}
+                                        <br>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+        </div>
+    </div>
+</div>
+    <script type="text/javascript">
+    {#实现界面的跳转#}
+    function GetStuInfo(stu_id) {
+        window.location.href="/teacher/stu_info?studentID="+stu_id
+    }
+    </script>
+{% endblock %}

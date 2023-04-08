@@ -1,0 +1,13 @@
+.add-next-div{
+    display: flex;
+    flex-direction: row;
+    align-self: center;
+    align-content: center;
+    height: 50px;
+}
+.add-next-a{
+    display: flex;
+    flex-direction: row;
+    align-self: center;
+    justify-self: center;
+}

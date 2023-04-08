@@ -1,0 +1,258 @@
+{% extends "teacher/navigate.html" %} {% block mainbody %}
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title></title>
+    <meta charset="utf-8" />
+    <script src="/static/js/echarts.js"></script>
+    <style>
+        .btn-blue{
+            margin: 10px;
+            background-color: #3498db;
+            width: 140px;
+            height: 45px;
+            border-radius: 5px;
+            border: none;
+            font-size: 15px;
+            font-family: 'Roboto';
+	        text-align: center;
+            text-transform: uppercase;
+            color: #FFF;
+            user-select: none;
+        }
+
+        .btn-blue span {
+            font-size: 15px;
+            cursor: pointer;
+            display: inline-block;
+            position: relative;
+            transition: 0.5s;
+        }
+
+        .btn-blue span:after {
+            content: '»';
+            position: absolute;
+            opacity: 0;
+            top: 0;
+            right: -15px;
+            transition: 0.5s;
+        }
+
+        .btn-blue:hover {
+            cursor: pointer;
+            opacity: 1;
+            transition: 0.5s;
+            background-color: #0055b3;
+        }
+
+        .btn-blue:hover span {
+            padding-right: 15px;
+        }
+
+        .btn-blue:hover span:after {
+            opacity: 1;
+            right: 0;
+        }
+    </style>
+</head>
+<title>作业情况</title>
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+            <!--overview start-->
+            <div class="row">
+                <div class="col-md-12">
+                    <h4 class="page-header"><i class="fa fa-search"></i>作业情况</h4>
+                    <ol class="breadcrumb">
+                        <li><i class="fa fa-home"></i><a href="/teacher">主页</a></li>
+                        <li><i class="fa fa-search"></i>作业情况</li>
+                    </ol>
+                </div>
+            </div>
+            <br>
+            <div class="row" style="background-color: white; color: black; max-height: max-content; min-height: 500px">
+                <br>
+                <!--头部-->
+                <div class="row" style="height: 30px; width: 100%; text-align: center;font-size: x-large">{{ homework_name }}测试完成情况</div>
+                <br><br>
+                <!--index-->
+                <div class="row" style="height: max-content; width: 90%; margin-left: 5%; float: left">
+                    <div class="col-md-12" style="width: 100%; display: flex; flex-direction: column; justify-content: center">
+                        <div>
+                            <button class="btn-blue" type="button" id="button_test" onclick="downloadText({{ test_list }})">
+                                <span>下载信息表</span>
+                            </button>
+                            <button class="btn-blue" type="button" id="button_score" onclick="downloadScore({{ stu_score }})">
+                                <span>下载成绩表</span>
+                            </button>
+                            <button class="btn-blue" type="button" id="button_all" onclick="downloadAll({{ test_list }})">
+                                <span>下载作业</span>
+                            </button>
+                        </div>
+                    </div>
+                    <!--左侧小测详情\-->
+                    <div class="col-md-12" style="width: 70%; float: left">
+                        <div class="panel panel-default ">
+                            <header class="panel-heading">
+                                小测详情:
+                            </header>
+                            <div class = "panel-body ">
+                                <div class="row" style="text-align: center; color: black; font-size: larger; height: 40px; border-bottom: 1px solid #6b6b6b">
+                                    {% for key, value in homework_dict.items %}
+                                        <div>知识点:{{ key }};题数:{{ value }}</div>
+                                    {% endfor %}
+                                </div>
+                                <!--表头-->
+                                <div class="row" style="text-align: center; color: black; font-size: large; height: 40px; align-self: center; padding: 5px; border-bottom: 1px solid #6b6b6b">
+                                    <div class="col-md-12" style="width: 20%; float: left; text-align: center">题目名称</div>
+                                    <div class="col-md-12" style="width: 20%; float: left; text-align: center">题干</div>
+                                    <div class="col-md-12" style="width: 20%; float: left; text-align: center">答案</div>
+                                    <div class="col-md-12" style="width: 20%; float: left; text-align: center">正确人次</div>
+                                    <div class="col-md-12" style="width: 20%; float: left; text-align: center">错误人次</div>
+                                </div>
+                                <!--内容-->
+                                <div class="col-md-12" style="text-align: center; color: black; font-size: medium">
+                                    {% for key, value in test_list.items %}
+                                        <div class="row" style="width: 100%; border-bottom: 1px solid #9e9e9e; height: 100%">
+                                            <div class="col-md-12" style="width: 20%; float: left; text-align: center">{{ key }}</div>
+                                            {% for key, val in value.items %}
+                                                <div class="col-md-12" style="width: 20%; float: left; text-align: center">{{ val }}</div>
+                                            {% endfor %}
+                                            <br>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                    <!--右侧学生成绩-->
+                    <div class="col-md-12" style="width: 30%; float:left">
+                        <div class="panel panel-default ">
+                            <header class="panel-heading">
+                                学生完成情况:
+                            </header>
+                            <div class = "panel-body ">
+                                <!--表头-->
+                                <div class="row" style="width: 90%;align-self: center">
+                                    <div class="col-md-12" style="width: 50%; float: left; text-align: center">姓名</div>
+                                    <div class="col-md-12" style="width: 50%; float: left; text-align: center">成绩</div>
+                                </div>
+                                {% for key,value in stu_score.items %}
+                                    <div class="row" style="width: 90%; align-self: center">
+                                        <div class="col-md-12" style="width: 50%; float: left; text-align: center" >{{ key }}</div>
+                                        <div class="col-md-12" style="width: 50%; float: left; text-align: center" >{{ value }}</div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+     function downloadText(text){
+        let str = `题目名称,答案,正确人次,错误人次\n`;
+        let text_content = [];
+        for (let i in text) {
+            let c = [];
+            let testitem = text[i];
+            c.push(i);
+            for(let j in testitem){
+                if(j == '内容'){
+                    continue;
+                }
+                c.push('\"'+testitem[j]+'\"');
+            }
+            console.log(c[2]);
+            text_content.push(c);
+        }
+        downloadExcel(str, text_content, '作业情况')
+    }
+
+    function downloadScore(text){
+        let str = '序号, 姓名, 成绩\n';
+        let text_content = [];
+        let idx = 1;
+        for(let i in text){
+            let c = [];
+            c.push(idx);
+            idx++;
+            c.push(i);
+            c.push(text[i]);
+            text_content.push(c);
+        }
+        downloadExcel(str, text_content, '学生成绩')
+    }
+
+    function downloadExcel(str, data, fileName){
+        //增加\t为了不让表格显示科学计数法或者其他格式
+        for(let i = 0 ; i < data.length ; i++ ){
+            for(let item in data[i]){
+                str+=`${data[i][item]}`;
+                if(item != '成绩') {
+                    str += ',';
+                }
+            }
+            str+='\n';
+        }
+        //encodeURIComponent解决中文乱码
+        let uri = 'data:text/csv;charset=utf-8,\ufeff' + encodeURIComponent(str);
+        //通过创建a标签实现
+        let link = document.createElement("a");
+        link.href = uri;
+        //对下载的文件命名
+        link.download = `${fileName || '表格数据'}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    function downloadAll(text){
+        let str = `题目名称,答案,正确人次,错误人次\n`;
+        let text_content = [];
+        for (let i in text) {
+            let c = [];
+            let testitem = text[i];
+            {#c.push(i);#}
+            for(let j in testitem){
+                if(j == '内容'){
+                    c.push(testitem[j]);
+                }
+                else if(j == '答案'){
+                    c.push(testitem[j]);
+                }
+
+            }
+            text_content.push(c);
+        }
+        console.log(text);
+        downloadTxt(text_content);
+    }
+
+    function downloadTxt(text){
+        let text_content = '';
+        {#给每个题目分别加一个换行符#}
+        for(let i =0;i<text.length;i++){
+            text_content = text_content + '第' + (i+1).toString() + '题、' + '\n' + text[i][0] +'\n' + '答案：' + text[i][1] + '\n';
+        }
+        {#let element = document.createElement('a');#}
+        {#element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text_content));#}
+        {#element.setAttribute('download', fileName);#}
+        {#element.style.display = 'none';#}
+        {#element.click();#}
+        let uri = 'data:text/plain;charset=utf-8,\ufeff' + encodeURIComponent(text_content);
+        //通过创建a标签实现
+        let link = document.createElement("a");
+        link.href = uri;
+        //对下载的文件命名
+        link.download = `${'作业内容'}.txt`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+</script>
+
+{% endblock %}

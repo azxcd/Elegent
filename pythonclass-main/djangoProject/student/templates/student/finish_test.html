@@ -1,0 +1,99 @@
+{% extends "student/navigate.html" %} {% block mainbody %}
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title></title>
+    <meta charset="utf-8" />
+    <script src="/static/js/echarts.js"></script>
+{#    这里是弹窗的格式#}
+    <style>
+        .popup {
+            width: 100vw;
+            height: 150vh;
+            background-color: rgba(0, 0, 0, .5);
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            right: 0;
+            {#隐藏该元素 #}
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .popup-content {
+            width: 400px;
+            height: 200px;
+            background-color: #fff;
+            box-sizing: border-box;
+            padding: 10px 30px;
+            color: black;
+        }
+
+        .top {
+            width: 100%;
+            border-bottom: 1px solid black;
+        }
+
+        .info {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<title>关系</title>
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+            <!--overview start-->
+            <div class="row">
+                <div class="col-md-12">
+                    <h4 class="page-header"><i class="fa fa-search"></i>查看作业</h4>
+                    <ol class="breadcrumb">
+                        <li><i class="fa fa-home"></i><a href="/student">主页</a></li>
+                        <li><i class="fa fa-search"></i>查看作业</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+        <div class = "col-md-12"style="float: left">
+            <div class="panel panel-default">
+                <header class="panel-heading">
+                 作业记录：
+                </header>
+                <div class = "panel-body" style="height: 250px;overflow-y:auto;" align="center">
+                    {% for key,value in all_test.items %}
+                    <form action="/student/certain_test" id="test_list" class="form-inline" style="padding-left: 10% ; padding-right: 10%" method="post"  >
+                        {% csrf_token %}
+                        作业名称: <input type="text" readonly=true name="title" onkeydown="if(event.keyCode===13){return false;}" value="{{ key }}">
+                        截止日期: <input type="text" readonly=true name="deadline" onkeydown="if(event.keyCode===13){return false;}" value="{{ value.deadline }}">
+                        时间限制: <input type="text" readonly=true name="limittime" onkeydown="if(event.keyCode===13){return false;}" value="{{ value.limittime }}min">
+                        <input id="{{ key }}button" class="btn btn-primary" style="background-color:#4592fe ; padding:6px 38px; margin-left:20px;margin-bottom: 10px;" type="submit" name="inputmethod"  value="完成"><br><br>
+                    </form>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="/static/js/jquery-1.8.3.min.js"></script>
+{#    修改按钮状态的脚本#}
+    <script>
+        let all_test = {{ all_test|safe }}
+        for(let key in all_test){
+            let item = all_test[key]
+            {#如果这个测试已经完成#}
+            if (item['status']==1){
+                bElement=document.getElementById(key+"button");
+                bElement.value='已完成';
+                {#bElement.disabled=true;#}
+            }
+            if (item['status']==-1){
+                bElement=document.getElementById(key+"button");
+                bElement.value='未完成已截至';
+                bElement.disabled=true;
+                bElement.style="background-color:#4592fe ; padding:6px 10px; margin-left:20px;margin-bottom: 10px;"
+            }
+        }
+        console.log(all_test['hi'])
+    </script>
+{% endblock %}

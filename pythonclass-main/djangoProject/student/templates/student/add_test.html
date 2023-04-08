@@ -1,0 +1,131 @@
+{% extends "student/navigate.html" %} {% block mainbody %}
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title></title>
+    <meta charset="utf-8" />
+    <script src="/static/js/echarts.js"></script>
+</head>
+<title>添加题目</title>
+<div class="container">
+    <div class="row">
+    <!--head start-->
+    <div class="col-md-12">
+        <h3 class="page-header"><i class="fa fa-link" aria-hidden="true"></i> 添加题目 </h3>
+            <ol class="breadcrumb">
+                <li><i class="fa fa-home"></i><a href="/teacher">主页</a></li>
+                <li><i class="fa fa-link" aria-hidden="true"></i>添加题目</li>
+            </ol>
+    </div>
+    
+    <div class = "col-md-12">
+    	<div class = "panel panel-default">
+			<header class="panel-heading">
+            具体内容：
+       		</header>
+       		<div class = "panel-body">
+
+                <form action="/teacher/addTest2Neo" method="post" >
+                    {% csrf_token %}
+                    题目名称: <input type="text" name="title" onkeydown="if(event.keyCode===13){return false;}"><br><br>
+                    父节点个数: <select class="btn btn-default dropdown-toggle btn-select form-control" style="width: 100px" id="father_nums" onchange="role()" name="father_nums">
+                        <option value="">请选择</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                        <option value="7">7</option>
+                        <option value="8">8</option>
+                        <option value="9">9</option>
+                    </select>
+                    <br>
+                    父节点名称:<div id="father_list"></div><br>
+                    题目类型
+                    <!--dropdown combobox start-->
+                    <select name="Type" >
+                        <option selected="selected">--请选择--</option>
+                        <option value="1">选择题</option>
+                        <option value="2">填空题</option>
+                        <option value="3">编程题</option>
+                    </select>
+			        <!--dropdown combobox end-->
+                    <br>
+                    难度:
+                    <input onkeydown="if(event.keyCode===13){return false;}" type="radio" name="Difficulty" value="1" checked>1
+                    <input onkeydown="if(event.keyCode===13){return false;}" type="radio" name="Difficulty" value="2" >2
+                    <input onkeydown="if(event.keyCode===13){return false;}" type="radio" name="Difficulty" value="3" >3
+                    <input onkeydown="if(event.keyCode===13){return false;}" type="radio" name="Difficulty" value="4" >4
+                    <input onkeydown="if(event.keyCode===13){return false;}" type="radio" name="Difficulty" value="5" >5
+                    <input onkeydown="if(event.keyCode===13){return false;}" type="radio" name="Difficulty" value="6" >6
+                    <input onkeydown="if(event.keyCode===13){return false;}" type="radio" name="Difficulty" value="7" >7
+                    <input onkeydown="if(event.keyCode===13){return false;}" type="radio" name="Difficulty" value="8" >8
+                    <input onkeydown="if(event.keyCode===13){return false;}" type="radio" name="Difficulty" value="9" >9
+                    <input onkeydown="if(event.keyCode===13){return false;}" type="radio" name="Difficulty" value="10" >10
+                    <br>
+                    重要程度:
+                    <input onkeydown="if(event.keyCode===13){return false;}" type="radio" name="Importance" value="1" checked>1
+                    <input onkeydown="if(event.keyCode===13){return false;}" type="radio" name="Importance" value="2" >2
+                    <input onkeydown="if(event.keyCode===13){return false;}" type="radio" name="Importance" value="3" >3
+                    <input onkeydown="if(event.keyCode===13){return false;}" type="radio" name="Importance" value="4" >4
+                    <input onkeydown="if(event.keyCode===13){return false;}" type="radio" name="Importance" value="5" >5
+                    <input onkeydown="if(event.keyCode===13){return false;}" type="radio" name="Importance" value="6" >6
+                    <input onkeydown="if(event.keyCode===13){return false;}" type="radio" name="Importance" value="7" >7
+                    <input onkeydown="if(event.keyCode===13){return false;}" type="radio" name="Importance" value="8" >8
+                    <input onkeydown="if(event.keyCode===13){return false;}" type="radio" name="Importance" value="9" >9
+                    <input onkeydown="if(event.keyCode===13){return false;}" type="radio" name="Importance" value="10" >10
+                    <br>
+                    在作业中出现过几次:
+                    <input onkeydown="if(event.keyCode===13){return false;}" type="text" name="HomeworkTimes">
+                    <br>
+                    被做错的次数:
+                    <input onkeydown="if(event.keyCode===13){return false;}" type="text" name="WrongTimes">
+                    <br>
+                    在前几年考试中出现过几次:
+                    <input onkeydown="if(event.keyCode===13){return false;}" type="text" name="ExamTimes">
+                    <br>
+                    重要程度：
+                    <input onkeydown="if(event.keyCode===13){return false;}" type="radio" name="Teached" value="0" checked>未被讲解
+                    <input onkeydown="if(event.keyCode===13){return false;}" type="radio" name="Teached" value="1" >已被讲解
+                    输入题目：
+                    <textarea type="text" name="question_text" class="form-control" style="height:140px"> </textarea>
+                    <br>
+                    输入答案：
+                    <textarea type="text" name="answer_text" class="form-control" style="height:50px"> </textarea>
+                    <br>
+                  <input class="btn btn-primary" style="background-color:#4592fe ; padding:6px 38px" type="submit" value="提交">
+                </form>
+
+			</div>
+		</div>
+	</div>
+
+</div>
+<script src="/static/js/jquery-1.8.3.min.js"></script>
+
+    <script>
+         var PointResult = {{point_list|safe}}
+             console.log(PointResult)
+        function role() {
+            {#在这里记录父节点的个数     #}
+            var sel1 = document.getElementById('father_nums');
+            var index = sel1.selectedIndex;
+            var value=Number(sel1.options[index].value);
+            var f = document.getElementById('father_list')
+            f.innerHTML = "";
+            for (let i =0;i<value;i++){
+                var e = document.createElement("select");
+                e.name = "father"
+                for(var j=0;j<PointResult.length;j++){
+                    var oOption = document.createElement("OPTION");
+                    oOption.text=PointResult[j];
+                    oOption.value=PointResult[j];
+                    e.add(oOption);
+                }
+                f.appendChild(e);
+            }
+            {#alert(value)#}
+        }
+</script>
+</div>
+{% endblock %}

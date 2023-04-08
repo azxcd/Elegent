@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>试题列表</title>
+    <link href="/static/css/bootstrap.min.css" type="text/css" rel="stylesheet">
+    <script src="/static/js/jquery.js"></script>
+    <style>
+        .btn-blue{
+            margin: 10px;
+            background-color: #3498db;
+            width: 80px;
+            height: 45px;
+            border-radius: 5px;
+            border: none;
+            font-size: 15px;
+            font-family: 'Roboto';
+	        text-align: center;
+            text-transform: uppercase;
+            color: #FFF;
+            user-select: none;
+        }
+
+        .btn-blue span {
+            font-size: 15px;
+            cursor: pointer;
+            display: inline-block;
+            position: relative;
+            transition: 0.5s;
+        }
+
+        .btn-blue span:after {
+            content: '»';
+            position: absolute;
+            opacity: 0;
+            top: 0;
+            right: -15px;
+            transition: 0.5s;
+        }
+
+        .btn-blue:hover {
+            cursor: pointer;
+            opacity: 1;
+            transition: 0.5s;
+            background-color: #0055b3;
+        }
+
+        .btn-blue:hover span {
+            padding-right: 15px;
+        }
+
+        .btn-blue:hover span:after {
+            opacity: 1;
+            right: 0;
+        }
+
+        .spangreen {
+            color: green;
+            padding: 5px;
+        }
+
+        .spanred {
+            color: red;
+            padding: 5px;
+        }
+
+    </style>
+</head>
+<body style="background-color: #9FB6CD; background-image: linear-gradient(#9FB6CD, #3498db); min-height: 900px">
+<div class="well" style="display: flex; flex-flow: row wrap; justify-content: center; align-content: space-between">
+{#  抬头#}
+    <div class="well" style="background-color: white; width: 95%; border-radius: 10px">
+        <div name="information" class="container">
+            <h1>{{ nodename }}：试题列表</h1>
+        </div>
+    </div>
+{#  内容#}
+    <div class="well" style="margin-top: 10px; background-color: white; width: 95%; border-radius: 10px">
+
+        <div style="display: flex; flex-display:row; justify-content: flex-start; margin-right: 10px; margin-bottom: 20px; padding-left: 10px">
+{#          这里是返回按钮#}
+            <div>
+                <button class="btn-blue" type="button" onclick="button_back()">
+                    <span>返回</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+<script type="text/javascript">
+    function button_back(){
+        window.location.href="/teacher/"
+    }
+</script>
+</html>

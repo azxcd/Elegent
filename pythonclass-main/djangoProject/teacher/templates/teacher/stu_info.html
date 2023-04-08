@@ -1,0 +1,71 @@
+{% extends "teacher/navigate.html" %} {% block mainbody %}
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title></title>
+    <meta charset="utf-8" />
+    <script src="/static/js/echarts.js"></script>
+</head>
+<title>作业情况</title>
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+            <!--overview start-->
+            <div class="row">
+                <div class="col-md-12">
+                    <h4 class="page-header"><i class="fa fa-search"></i>学生学习情况</h4>
+                    <ol class="breadcrumb">
+                        <li><i class="fa fa-home"></i><a href="/teacher">主页</a></li>
+                        <li></i><a href="/teacher/class_info">班级学习情况</a></li>
+                        <li><i class="fa fa-search"></i>学生学习情况</li>
+                    </ol>
+                </div>
+            </div>
+            <br>
+                <div class = "col-md-12" style="width: 70%; float: left">
+                    <div class="panel panel-default ">
+                        <header class="panel-heading">
+                            学生学习情况
+                        </header>
+                        <div class="panel-body" style="width: 100%; overflow-x:scroll">
+                            <!--表头-->
+                            <div class="col-md-12">
+                                <div class="row" style="text-align: center; color: black; font-size: large; height: 40px; white-space: nowrap">
+                                    <div class="col-md-12" style="width: 25%; display: inline-block; text-align: center">小测名称</div>
+                                    <div class="col-md-12" style="width: 25%; display: inline-block; text-align: center">正确题目</div>
+                                    <div class="col-md-12" style="width: 25%; display: inline-block; text-align: center">错误题目</div>
+                                    <div class="col-md-12" style="width: 25%; display: inline-block; text-align: center">得分</div>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                {% for key, value in stu_homework_info.items %}
+                                    <div class="row" style="text-align: center; color: #6b6b6b; font-size: large; height: 40px; white-space: nowrap">
+                                        <div class="col-md-12" style="width: 25%; display: inline-block; text-align: center;background-color: #F5F5F5">{{ key }}</div>
+                                        {% for k, v in value.items %}
+                                            <div class="col-md-12" style="width: 25%; display: inline-block; text-align: center;background-color: #F5F5F5">{{ v }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class = "col-md-12" style="width: 30%; float: left">
+                    <div class="panel panel-default ">
+                        <header class="panel-heading">
+                            学生基本信息
+                        </header>
+                        <div class = "panel-body ">
+                            {% for key, value in stu_info.items %}
+                                <div class="col-md-12" style="text-align: center">
+                                    <div class="row" style="width: 40%; float:left;">{{ key }}</div>
+                                    <div class="row" style="width: 40%; float:left;">{{ value }}</div>
+                                    <br><br>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

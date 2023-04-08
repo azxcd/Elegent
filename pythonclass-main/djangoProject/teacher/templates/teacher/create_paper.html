@@ -1,0 +1,217 @@
+{% extends "teacher/navigate.html" %} {% block mainbody %}
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title></title>
+    <meta charset="utf-8" />
+    <script src="/static/js/echarts.js"></script>
+</head>
+<title>布置作业</title>
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+            <!--overview start-->
+            <div class="row">
+                <div class="col-md-12">
+                    <h4 class="page-header"><i class="fa fa-search"></i>布置作业</h4>
+                    <ol class="breadcrumb">
+                        <li><i class="fa fa-home"></i><a href="/teacher">主页</a></li>
+                        <li><i class="fa fa-search"></i>布置作业</li>
+                    </ol>
+                </div>
+            </div>
+                {% if searchResult %}
+                    <!-- 为ECharts准备一个具备大小（宽高）的左侧树图 -->
+                    <div class = "col-md-12" style="width: 30%;float: left">
+                        <div class="panel panel-default ">
+                            <header class="panel-heading">
+                                选择题目：
+                            </header>
+                            <div class = "panel-body ">
+                                <div id="tree" style="width: 100%;height:500px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- 右侧进行出题选择 -->
+                    <div class = "col-md-12" style="width: 70%;float:left;">
+                        <div class="panel panel-default ">
+                            <header class="panel-heading">
+                                题目内容：
+                            </header>
+                            <div class = "panel-body" style="height:530px;overflow-y:auto;" align="center">
+                                <form action="/teacher/fetch_paper" id="test_list" class="form-inline" style="padding-left: 10% ; padding-right: 10%" method="post"  >
+                                    {% csrf_token %}
+                                    <input class="btn btn-primary" style="background-color:#4592fe ; padding:6px 38px; margin-bottom: 10px;display: block" type="submit" value="提交">
+                                    时间限制:
+                                    <select name="timelimit">
+                                        <option>--请选择--</option>
+                                        <option value="10">10min</option>
+                                        <option value="20">20min</option>
+                                        <option value="30">30min</option>
+                                        <option value="40">40min</option>
+                                        <option value="50">50min</option>
+                                        <option value="60">60min</option>
+                                    </select>
+                                    <br><br>
+                                    作业名称: <input type="text" name="title" onkeydown="if(event.keyCode===13){return false;}"><br><br>
+                                    截止日期: <input type="date" name="deadline" onkeydown="if(event.keyCode===13){return false;}"><br><br>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Footable -->
+                    <div class = "col-md-12"style="float: left">
+                        <div class="panel panel-default">
+                            <header class="panel-heading">
+                             出题记录：
+                            </header>
+                            <div class = "panel-body" style="height: 250px;overflow-y:auto;" align="center">
+                                {% for key,value in all_test.items %}
+                                <form action="/teacher/test_info" id="test_list" class="form-inline" style="padding-left: 10% ; padding-right: 10%" method="post"  >
+                                    {% csrf_token %}
+                                    作业名称: <input type="text" readonly=true name="title" onkeydown="if(event.keyCode===13){return false;}" value="{{ key }}">
+                                    截止日期: <input type="text" readonly=true name="deadline" onkeydown="if(event.keyCode===13){return false;}" value="{{ value.deadline }}">
+                                    时间限制: <input type="text" style="width: 60px" readonly=true name="limittime" onkeydown="if(event.keyCode===13){return false;}" value="{{ value.limittime }}min">
+                                    <input class="btn btn-primary" style="background-color:#4592fe ; padding:6px 38px; margin-left:20px;margin-bottom: 10px;" type="submit" value="查看作业情况"><br><br>
+                                </form>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+        </div>
+
+    </div>
+</div>
+
+    <script src="/static/js/jquery-1.8.3.min.js"></script>
+    {% if searchResult %}
+    <script type="text/javascript">
+        var searchResult = {{searchResult|safe}}
+        {#生成左侧树的使用数据,有class节点，Theme节点、Knowledge节点和Point节点#}
+{#        因为class节点只有一个，所以可以手动设置class节点#}
+        tree_data = {
+            name:'Python',
+            children:[]
+        };
+        {#第一次遍历所有的节点，用于生成所有的Theme子节点#}
+        for(i=0;i<searchResult.length;i++){
+            if (searchResult[i]['node_properties']['type']=='Theme'){
+                tree_data['children'].push({
+                    name:searchResult[i]['node_properties']['title'],
+                    children:[]
+                })
+            }
+        }
+        {#第二次遍历所有的节点，用于生成所有的Knowledge子节点#}
+        let class_children = tree_data['children']
+        let knowledge_list=[]
+        for(i=0;i<searchResult.length;i++){
+            if (searchResult[i]['node_properties']['type']=='Knowledge'){
+                {#knowledge_list.push(searchResult[i]['node_properties']['title'])#}
+                let father_name = searchResult[i]['node_connections'][0]['nodes_related'][0]['node_properties']['title']
+                for(j=0;j<class_children.length;j++){
+                    if (father_name==class_children[j]['name']){
+                        let this_data = {
+                            name: searchResult[i]['node_properties']['title'],
+                            children:[]
+                        }
+                        class_children[j]['children'].push(this_data)
+                        knowledge_list.push(this_data)
+                    }
+                }
+            }
+        }
+        {#第三次遍历所有的节点，用于生成所有的Point节点#}
+        for(i=0;i<searchResult.length;i++){
+            if (searchResult[i]['node_properties']['type']=='Point'){
+                let father_name = searchResult[i]['node_connections'][0]['nodes_related'][0]['node_properties']['title']
+                for(j=0;j<knowledge_list.length;j++){
+                    if (father_name==knowledge_list[j]['name']){
+                        knowledge_list[j]['children'].push(
+                            {
+                                name: searchResult[i]['node_properties']['title'],
+                                value:0}
+                        )
+                    }
+                }
+            }
+        }
+
+        {#    左侧树图的初始化设置#}
+        var chartDom_tree = document.getElementById('tree');
+        var myChart_tree = echarts.init(chartDom_tree);
+        var option_tree;
+        option_tree = {
+            series: [
+                {
+                    roam: 'move',
+                    type: 'tree',
+                    id: 100,
+                    name: 'tree1',
+                    data: [tree_data],
+                    top: '-250%',
+                    left: '8%',
+                    bottom: '-250%',
+                    right: '10%',
+                    symbolSize: 7,
+                    edgeShape: 'polyline',
+                    edgeForkPosition: '63%',
+                    initialTreeDepth: 2,
+                    lineStyle: {
+                        width: 2,
+                        length:2,
+                    },
+                    label: {
+                        backgroundColor: '#fff',
+                    },
+                    leaves: {
+                        label: {
+                        }
+                    },
+                    emphasis: {
+                        focus: 'descendant'
+                    },
+                    expandAndCollapse: false,
+                    animationDuration: 550,
+                    animationDurationUpdate: 750
+                }
+            ]
+        }
+        option_tree && myChart_tree.setOption(option_tree);
+        {#通过点击更改右侧的内容#}
+        let div_id=0
+        myChart_tree.on('click', function (param){
+            console.log('param---->', param);  // 打印出param, 可以看到里边有很多参数可以使用
+            {#如果点击的是point，就在下面生成对应的内容#}
+            if(param.data['value']===0){
+                {#choosed_node.push(param.name);#}
+                div_id = div_id+1;
+                {#console.log(choosed_node);#}
+                var myform=$('#test_list');
+                var tmpInput=$("<div style='padding: 2px' id='"+div_id+"'>" +
+                    "<input name='node_name' style='background-color:rgba(205, 205,205, 0.6);width: 60px;margin-right: 10px;border: none;' value="+param.name+" readonly/>"+
+                    "<input type='text' name='nums' class ='form-control' style='width: 100px' placeholder='出题数目' aria-describedby='basic-addon1'/>" +
+                    "<button type='button' id='button_"+div_id+"' class='btn btn-primary' style='background-color:#4592fe ; padding:6px 38px;height: 30px;margin-left: 10px' onclick='DeleteDiv(this)'>删除</button>"+
+                    "</div>");
+                myform.append(tmpInput);
+                {#myform.submit();#}
+            }
+        });
+
+        function DeleteDiv(obj){
+            {#alert(obj.id)#}
+            var strid=obj.id;
+            var o=document.getElementById(strid);
+            var z=o.parentElement;
+            var stridone=z.id;
+            let pos = Number(stridone)
+            alert(z.id)
+            //判断本id对应的值并删除
+            var my = document.getElementById(stridone);
+            if (my != null){
+			    my.parentNode.removeChild(my);}
+        }
+    </script>
+    {% endif %}
+    </div>
+{% endblock %}

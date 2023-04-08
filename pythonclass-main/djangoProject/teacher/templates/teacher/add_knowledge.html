@@ -1,0 +1,171 @@
+{% extends "teacher/navigate.html" %} {% block mainbody %}
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title></title>
+    <meta charset="utf-8" />
+    <script src="/static/js/echarts.js"></script>
+
+</head>
+<title>添加知识</title>
+<div class="container">
+    <div class="row">
+    <!--head start-->
+    <div class="col-md-12">
+        <h3 class="page-header"><i class="fa fa-share-alt" aria-hidden="true"></i> 添加知识 </h3>
+            <ol class="breadcrumb">
+                <li><i class="fa fa-home"></i><a href="/teacher">主页</a></li>
+                <li><i class="fa fa-share-alt" aria-hidden="true"></i>添加知识</li>
+            </ol>
+    </div>
+    <div class = "col-md-12">
+        <div class="panel panel-default ">
+            <header class = "panel-heading">
+                具体内容：
+            </header>
+            <div class = "panel-body">
+                <!--知识内容填写框-->
+                <form action="/teacher/addKnowledge2Neo" method="post">
+                    {% csrf_token %}
+                    添加的知识节点的类型:
+                    <select class="btn btn-default dropdown-toggle btn-select form-control" style="width: 100px" id="selectid" onchange="role()" name="type">
+                        <option value="">请选择</option>
+                        <option value="Theme">章</option>
+                        <option value="Knowledge">节</option>
+                        <option value="Point">知识点</option>
+                    </select>
+                    <br><br>
+                    节点名称: <input type="text" name="title"><br><br>
+                    父节点名称:
+                    <select class="btn btn-default dropdown-toggle btn-select form-control" style="width: 100px;display: none" id="SelectClass" name="father">
+                        <option value="">请选择</option>
+                        {% for class_name in class_list %}
+                            <option value={{ class_name }}>{{ class_name }}</option>
+                        {% endfor %}
+                    </select>
+                    <select class="btn btn-default dropdown-toggle btn-select form-control" style="width: 100px;display: none" id="SelectTheme" name="father">
+                        <option value="">请选择</option>
+                        {% for theme_name in theme_list %}
+                            <option value={{ theme_name }}>{{ theme_name }}</option>
+                        {% endfor %}
+                    </select>
+                    <select class="btn btn-default dropdown-toggle btn-select form-control" style="width: 100px;display: inline" id="SelectKnowledge" name="father">
+                        <option value="">请选择</option>
+                        {% for knowledge_name in knowledge_list %}
+                            <option value={{ knowledge_name }}>{{ knowledge_name }}</option>
+                        {% endfor %}
+                    </select>
+                    <br><br>
+                    难度:
+                    <input type="radio" name="Difficulty" value="1" checked>1
+                    <input type="radio" name="Difficulty" value="2" >2
+                    <input type="radio" name="Difficulty" value="3" >3
+                    <input type="radio" name="Difficulty" value="4" >4
+                    <input type="radio" name="Difficulty" value="5" >5
+                    <input type="radio" name="Difficulty" value="6" >6
+                    <input type="radio" name="Difficulty" value="7" >7
+                    <input type="radio" name="Difficulty" value="8" >8
+                    <input type="radio" name="Difficulty" value="9" >9
+                    <input type="radio" name="Difficulty" value="10" >10
+                    <br><br>
+                    重要程度:
+                    <input type="radio" name="Importance" value="1" checked>1
+                    <input type="radio" name="Importance" value="2" >2
+                    <input type="radio" name="Importance" value="3" >3
+                    <input type="radio" name="Importance" value="4" >4
+                    <input type="radio" name="Importance" value="5" >5
+                    <input type="radio" name="Importance" value="6" >6
+                    <input type="radio" name="Importance" value="7" >7
+                    <input type="radio" name="Importance" value="8" >8
+                    <input type="radio" name="Importance" value="9" >9
+                    <input type="radio" name="Importance" value="10" >10
+                    <br><br>
+                    学生的掌握程度:
+                    <input type="radio" name="Mastery" value="1" checked>1
+                    <input type="radio" name="Mastery" value="2" >2
+                    <input type="radio" name="Mastery" value="3" >3
+                    <input type="radio" name="Mastery" value="4" >4
+                    <input type="radio" name="Mastery" value="5" >5
+                    <input type="radio" name="Mastery" value="6" >6
+                    <input type="radio" name="Mastery" value="7" >7
+                    <input type="radio" name="Mastery" value="8" >8
+                    <input type="radio" name="Mastery" value="9" >9
+                    <input type="radio" name="Mastery" value="10" >10
+                    <br><br>
+                    权重:
+                    <input type="radio" name="Weights" value="1" checked>1
+                    <input type="radio" name="Weights" value="2" >2
+                    <input type="radio" name="Weights" value="3" >3
+                    <input type="radio" name="Weights" value="4" >4
+                    <input type="radio" name="Weights" value="5" >5
+                    <input type="radio" name="Weights" value="6" >6
+                    <input type="radio" name="Weights" value="7" >7
+                    <input type="radio" name="Weights" value="8" >8
+                    <input type="radio" name="Weights" value="9" >9
+                    <input type="radio" name="Weights" value="10" >10
+                    <br><br>
+                    是否已经讲解：
+                    <input type="radio" name="Teached" value="0" checked>没有讲解
+                    <input type="radio" name="Teached" value="1" >已经讲解
+                    <br><br>
+
+                  <input class="btn btn-primary" style="background-color:#4592fe ; padding:6px 38px" type="submit" value="提交">
+                </form>
+            </div>
+        </div>
+
+        
+    </div>
+</div>
+</div>
+    <script>
+    let select;
+    console.log(document.getElementById("SelectKnowledge").style.display)
+    function role() {
+    var sel1 = document.getElementById('selectid');
+    var index = sel1.selectedIndex;
+    var value=sel1.options[index].value;
+        if (value=="Theme"){
+            document.getElementById("SelectClass").style.display="inline";
+            document.getElementById("SelectKnowledge").style.display="none";
+            document.getElementById("SelectTheme").style.display="none";
+            select = document.getElementById("SelectKnowledge");
+            for (var i = 0; i < select.options.length; i++){
+                    select.options[i].selected = false;
+            }
+            select = document.getElementById("SelectTheme");
+            for (var i = 0; i < select.options.length; i++){
+                    select.options[i].selected = false;
+            }
+        }
+        else if (value=="Knowledge"){
+            document.getElementById("SelectClass").style.display="none";
+            document.getElementById("SelectKnowledge").style.display="none";
+            document.getElementById("SelectTheme").style.display="inline";
+            select = document.getElementById("SelectKnowledge");
+            for (var i = 0; i < select.options.length; i++){
+                    select.options[i].selected = false;
+            }
+            select = document.getElementById("SelectClass");
+            for (var i = 0; i < select.options.length; i++){
+                    select.options[i].selected = false;
+            }
+        }
+        else if (value=="Point"){
+            document.getElementById("SelectClass").style.display="none";
+            document.getElementById("SelectKnowledge").style.display="inline";
+            document.getElementById("SelectTheme").style.display="none";
+            select = document.getElementById("SelectClass");
+            for (var i = 0; i < select.options.length; i++){
+                    select.options[i].selected = false;
+            }
+            select = document.getElementById("SelectTheme");
+            for (var i = 0; i < select.options.length; i++){
+                    select.options[i].selected = false;
+            }
+        }
+    }
+
+    </script>
+
+{% endblock %}

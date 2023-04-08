@@ -1,0 +1,594 @@
+{% extends "teacher/navigate.html" %} {% block mainbody %}
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title></title>
+    <meta charset="utf-8" />
+    <script src="/static/js/echarts.js"></script>
+{#    这里是弹窗的格式#}
+    <style>
+        .popup {
+            width: 100vw;
+            height: 150vh;
+            background-color: rgba(0, 0, 0, .5);
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            right: 0;
+            {#隐藏该元素 #}
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .popup-content {
+            width: 400px;
+            height: 200px;
+            background-color: #fff;
+            box-sizing: border-box;
+            padding: 10px 30px;
+            color: black;
+        }
+
+        .top {
+            width: 100%;
+            border-bottom: 1px solid black;
+        }
+
+        .info {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<title>关系</title>
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+            <!--overview start-->
+            <div class="row">
+                <div class="col-md-12">
+                    <h4 class="page-header"><i class="fa fa-search"></i>实体识别 </h4>
+                    <ol class="breadcrumb">
+                        <li><i class="fa fa-home"></i><a href="/teacher">主页</a></li>
+                        <li><i class="fa fa-search"></i>实体识别</li>
+                    </ol>
+                </div>
+            </div>
+                {% if searchResult %}
+                    <!-- 为ECharts准备一个具备大小（宽高）的左侧树图 -->
+                    <div class = "col-md-12" style="width: 30%;float: left">
+                        <div class="panel panel-default ">
+                            <header class="panel-heading">
+                                知识树图 :
+                            </header>
+                            <div class = "panel-body ">
+                                <div id="tree" style="width: 100%;height:1000px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- 为ECharts准备一个具备大小（宽高）的右侧关系图 -->
+                    <div class = "col-md-12" style="width: 70%;float: left">
+                        <div class="panel panel-default ">
+                            <header class="panel-heading">
+                                关系图 :
+                            </header>
+                            <div class = "panel-body ">
+                                <div id="graph" style="width: 100%;height:1000px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+        </div>
+
+    </div>
+</div>
+    <!--当点击节点的时候会出现如下弹窗-->
+{#    目前只能修改#}
+<!--弹窗点击除 确定按钮 以外的 取消和其他区域 时弹窗都会消失且输出false，点击 确定按钮 时为true-->
+    <div class="popup" id="popup" onclick="hidePopup(false)">
+        {% csrf_token %}
+        <div class="popup-content">
+            <div class="top">
+                <p>提示信息</p>
+            </div>
+            <div class="info">
+                <p>请选择是删除该节点还是修改</p>
+            </div>
+            <div class="btn">
+                <!--因为两个按钮在popup这个大框里，点击确定和取消就会同时点击父元素，会产生事件冒泡（即点击确定，会同时出现true和false）-->
+                <button id="button_delete" type="button" value="" onclick="hidePopup('delete',this.value)">删除</button>
+                <button id="button_renew" type="button" value="" onclick="hidePopup('renew',this.value)">修改</button>
+            </div>
+        </div>
+    </div>
+    {#    如果点击节点之后的操作是修改，就会重新弹出新的弹窗#}
+    <div class="popup" id="popup2"  >
+        <div class="popup-content" style="overflow: scroll;height: 300px" >
+            <div class="top">
+                <p>想要修改的信息</p>
+            </div>
+{#            修改知识节点的表单#}
+            <form id="popform_knowledgenode" style="margin-top: 10px" action="/teacher/renew" method="post">
+                {% csrf_token %}
+                节点名称: <input id="knowledgenode_name" type="text" name="title" value=" " disabled="true">
+                <br><br>
+                难度:
+                <input type="radio" name="Difficulty" value="1" checked>1
+                <input type="radio" name="Difficulty" value="2" >2
+                <input type="radio" name="Difficulty" value="3" >3
+                <input type="radio" name="Difficulty" value="4" >4
+                <input type="radio" name="Difficulty" value="5" >5
+                <input type="radio" name="Difficulty" value="6" >6
+                <input type="radio" name="Difficulty" value="7" >7
+                <input type="radio" name="Difficulty" value="8" >8
+                <input type="radio" name="Difficulty" value="9" >9
+                <input type="radio" name="Difficulty" value="10" >10
+                <br><br>
+                重要程度:
+                <input type="radio" name="Importance" value="1" checked>1
+                <input type="radio" name="Importance" value="2" >2
+                <input type="radio" name="Importance" value="3" >3
+                <input type="radio" name="Importance" value="4" >4
+                <input type="radio" name="Importance" value="5" >5
+                <input type="radio" name="Importance" value="6" >6
+                <input type="radio" name="Importance" value="7" >7
+                <input type="radio" name="Importance" value="8" >8
+                <input type="radio" name="Importance" value="9" >9
+                <input type="radio" name="Importance" value="10" >10
+                <br><br>
+                权重:
+                <input type="radio" name="Weights" value="1" checked>1
+                <input type="radio" name="Weights" value="2" >2
+                <input type="radio" name="Weights" value="3" >3
+                <input type="radio" name="Weights" value="4" >4
+                <input type="radio" name="Weights" value="5" >5
+                <input type="radio" name="Weights" value="6" >6
+                <input type="radio" name="Weights" value="7" >7
+                <input type="radio" name="Weights" value="8" >8
+                <input type="radio" name="Weights" value="9" >9
+                <input type="radio" name="Weights" value="10" >10
+                <br><br>
+                是否讲解:
+                <input type="radio" name="Teached" value="0" checked>否
+                <input type="radio" name="Teached" value="1" >是
+                <br><br>
+                <input class="btn btn-primary" style="background-color:#4592fe ; padding:6px 38px" type="submit" value="提交">
+            </form>
+
+            {#  修改题目节点的表单  #}
+            <form id="popform_testnode" style="margin-top: 10px" action="/teacher/renewtest" method="post">
+                {% csrf_token %}
+                节点名称: <input id="testnode_name" type="text" name="title" value=" " disabled="true">
+                <br><br>
+                题目类型
+                <!--dropdown combobox start-->
+                <select name="Type" >
+                    <option selected="selected">--请选择--</option>
+                    <option value="1">选择题</option>
+                    <option value="2">填空题</option>
+                    <option value="3">编程题</option>
+                </select>
+                <!--dropdown combobox end-->
+                <br><br>
+                难度:
+                <input type="radio" name="Difficulty" value="1" checked>1
+                <input type="radio" name="Difficulty" value="2" >2
+                <input type="radio" name="Difficulty" value="3" >3
+                <input type="radio" name="Difficulty" value="4" >4
+                <input type="radio" name="Difficulty" value="5" >5
+                <input type="radio" name="Difficulty" value="6" >6
+                <input type="radio" name="Difficulty" value="7" >7
+                <input type="radio" name="Difficulty" value="8" >8
+                <input type="radio" name="Difficulty" value="9" >9
+                <input type="radio" name="Difficulty" value="10" >10
+                <br><br>
+                重要程度:
+                <input type="radio" name="Importance" value="1" checked>1
+                <input type="radio" name="Importance" value="2" >2
+                <input type="radio" name="Importance" value="3" >3
+                <input type="radio" name="Importance" value="4" >4
+                <input type="radio" name="Importance" value="5" >5
+                <input type="radio" name="Importance" value="6" >6
+                <input type="radio" name="Importance" value="7" >7
+                <input type="radio" name="Importance" value="8" >8
+                <input type="radio" name="Importance" value="9" >9
+                <input type="radio" name="Importance" value="10" >10
+                <br><br>
+                是否讲解：
+                <input type="radio" name="Teached" value="0" checked>未被讲解
+                <input type="radio" name="Teached" value="1" >已被讲解
+                <br><br>
+                输入题目：
+                <textarea type="text" name="question_text" class="form-control" style="height:140px"> </textarea>
+                <br><br>
+                输入答案：
+                <textarea type="text" name="answer_text" class="form-control" style="height:50px"> </textarea>
+                <br><br>
+
+                <input class="btn btn-primary" style="background-color:#4592fe ; padding:6px 38px" type="submit" value="提交">
+            </form>
+
+            <button class="btn btn-primary" style="margin-top: 10px ; background-color:#4592fe ; padding:6px 38px" onclick="hidePopup2(false)" >关闭</button>
+        </div>
+    </div>
+    <script src="/static/js/jquery-1.8.3.min.js"></script>
+    {% if searchResult %}
+    <script type="text/javascript">
+        var searchResult = {{searchResult|safe}}
+{#        节点类型和半径大小对应的字典#}
+        symbol_dict ={
+            Class:50,
+            Knowledge:40,
+            Theme:30,
+            Point:20,
+            Test:10,
+        }
+        //获得所有的数据
+        var data = [] ;
+        var links = [] ;
+        var EnglishToChinese = {
+            "Class":"课程",
+            "Theme":"章",
+            "Knowledge":"节",
+            "Point":"知识点",
+            "Test":"题目",
+        }
+        var categories = [
+            {"name":"课程"},
+            {"name":"章"},
+            {"name":"节"},
+            {"name":"知识点"},
+            {"name":"题目"},
+        ]
+        {#取当前窗口的高和宽#}
+        var winWidth=document.getElementById("graph").style.width
+        var winHeight=document.getElementById("graph").style.height
+        {#console.log(winWidth+'   '+winHeight)#}
+        var id =0;
+        {#在这里生成节点#}
+        for (var i=0;i<searchResult.length;i++){
+            node = {}
+            node['name'] = searchResult[i]['node_properties']['title']
+            node['attributes'] = searchResult[i]['node_properties']['attributes']
+            {#如果说要设置category，需要把它的值设置成categories中的#}
+            node['category'] = EnglishToChinese[searchResult[i]['node_properties']['type']]
+            {#value会显示在侧边的提示框里#}
+{#            根据不同的类型设置不同的symbolSize(节点在图中的大小)#}
+            node['symbolSize'] = symbol_dict[searchResult[i]['node_properties']['type']]
+            node['value'] = symbol_dict[searchResult[i]['node_properties']['type']]
+{#            生成节点之间的关系#}
+            if (Object.keys(searchResult[i]['node_connections'][0]).length != 2) {
+                related_nodes = searchResult[i]['node_connections'][0]['nodes_related']
+                {#console.log(related_nodes)#}
+                for (var j=0;j<related_nodes.length;j++){
+                    relation = {}
+                    relation['target'] = node['name']
+                    relation['source'] = related_nodes[j]['node_properties']['title']
+                    {#边的数值，可以在力引导布局中用于映射到边的长度#}
+                    relation['value'] = symbol_dict[related_nodes[j]['node_properties']['type']]
+                    links.push(relation)
+                }
+
+            }
+            data.push(node)
+        }
+
+         // 右侧关系图的初始化设置
+        var chartDom_graph = document.getElementById('graph');
+        var myChart_graph = echarts.init(chartDom_graph);
+        var option_graph;
+        option_graph = {
+            title: {
+              text: 'Python数据处理编程',
+              subtext: 'Default layout',
+              top: 'bottom',
+              left: 'right'
+            },
+            tooltip: {trigger: 'item'},
+            animationDurationUpdate: 1500,
+            animationEasingUpdate: 'quinticInOut',
+            legend: [
+              {
+                // selectedMode: 'single',
+                data: categories.map(function (a) {
+                  return a.name;
+                })
+              }
+            ],
+            series: [
+                {
+                    type: 'graph',
+                    layout: 'force',
+                    force: {
+                        {#进行力引导布局前的初始化布局，初始化布局会影响到力引导的效果#}
+                        initLayout:'circular',
+                        {#边的两个节点之间的距离#}
+                        edgeLength: [50,600],
+                        {#节点之间的斥力因子#}
+                        repulsion: 700,
+                        {#节点受到的向中心的引力因子。该值越大节点越往中心点靠拢#}
+                        gravity: 0.8
+                    },
+                    tooltip:{
+                          formatter:function (params) { //在此处直接用 formatter 属性
+                              if (params['dataType']=='node'){
+                                  var showdata = params.data;
+                                  if (showdata['category']!='Class'){
+                                      if (showdata['category']=='Test'){
+                                      {#// 根据自己的需求返回数据#}
+                                        return `
+                                                <div>难度：${showdata['attributes']['Difficulty']}</div>
+                                                <div>重要程度：${showdata['attributes']['Importance']}</div>
+                                                <div>作业中出现过几次：${showdata['attributes']['HomeworkTimes']}</div>
+                                                <div>做错次数：${showdata['attributes']['WrongTimes']}</div>
+                                                <div>前几年考试中总共出现的次数：${showdata['attributes']['ExamTimes']}</div>
+                                                <div>是否讲解：${showdata['attributes']['Teached']}</div>
+                                               `
+                                      }
+                                      {#// 根据自己的需求返回数据#}
+                                        return `
+                                                <div>难度：${showdata['attributes']['Difficulty']}</div>
+                                                <div>重要程度：${showdata['attributes']['Importance']}</div>
+                                                <div>学生掌握程度：${showdata['attributes']['Mastery']}</div>
+                                                <div>权重：${showdata['attributes']['Weights']}</div>
+                                                <div>是否讲解：${showdata['attributes']['Teached']}</div>
+                                               `
+                                  }
+                              }
+                              {#var showdata = params.data;#}
+                              {#console.log(params)  // 打印数据#}
+                            }
+                         },
+                    symbolSize: 45,
+                    roam: true,
+                    categories: categories,
+                    draggable:true,
+                    label: {
+                        fontSize:10,
+                        fontweight:'bold',
+                        show: true,
+                        color: "rgba(38, 37, 37, 1)",
+                        position: 'inside',
+                        formatter: '{b}',
+                    },
+                    edgeSymbolSize: [4, 50],
+                    data:data,
+                    links: links,
+                    lineStyle: {
+                      color: 'source',
+                      curveness: 0.6,
+                     },
+                    emphasis: {
+                      focus: 'adjacency',
+                      lineStyle: {
+                        width: 10
+                      }
+                     },
+                }
+            ]
+        } ;
+        // 使用刚指定的配置项和数据显示图表。
+        option_graph && myChart_graph.setOption(option_graph);
+        {#当点击了节点之后，可以选择是对节点进行删除或者修改#}
+        myChart_graph.on('click', function (param){
+            {#console.log(param.data)#}
+            showPopup(param.data['name'],param.data['category'])
+
+            {#console.log('param---->', param);  // 打印出param, 可以看到里边有很多参数可以使用#}
+            {#如果点击的是point，就在下面生成对应的内容#}
+            {#if(param.data['category']==='Point'){#}
+            {# }#}
+        });
+
+        {#    生成左侧树的使用数据,有class节点，Theme节点和Knowledge节点#}
+{#        因为class节点只有一个，所以可以手动设置class节点#}
+        tree_data = {
+            name:'Python',
+            children:[]
+        };
+        {#第一次遍历所有的节点，用于生成所有的Theme子节点#}
+        for(i=0;i<searchResult.length;i++){
+            if (searchResult[i]['node_properties']['type']=='Theme'){
+                tree_data['children'].push({
+                    name:searchResult[i]['node_properties']['title'],
+                    children:[]
+                })
+            }
+        }
+        {#第二次遍历所有的节点，用于生成所有的Knowledge子节点#}
+        let class_children = tree_data['children']
+        for(i=0;i<searchResult.length;i++){
+            if (searchResult[i]['node_properties']['type']=='Knowledge'){
+                let father_name = searchResult[i]['node_connections'][0]['nodes_related'][0]['node_properties']['title']
+                for(j=0;j<class_children.length;j++){
+                    if (father_name==class_children[j]['name']){
+                        class_children[j]['children'].push(
+                            { name: searchResult[i]['node_properties']['title'], value: 0 }
+                        )
+                    }
+                }
+            }
+        }
+        {#console.log(tree_data)#}
+        {#    左侧树图的初始化设置#}
+        var chartDom_tree = document.getElementById('tree');
+        var myChart_tree = echarts.init(chartDom_tree);
+        var option_tree;
+        option_tree = {
+            series: [
+                {
+                    roam: 'move',
+                    type: 'tree',
+                    id: 100,
+                    name: 'tree1',
+                    data: [tree_data],
+                    top: '2%',
+                    left: '8%',
+                    bottom: '2%',
+                    right: '10%',
+                    symbolSize: 7,
+                    edgeShape: 'polyline',
+                    edgeForkPosition: '63%',
+                    initialTreeDepth: 2,
+                    lineStyle: {
+                        width: 2,
+                        length:2,
+                    },
+                    label: {
+                        backgroundColor: '#fff',
+                    },
+                    leaves: {
+                        label: {
+                        }
+                    },
+                    emphasis: {
+                        focus: 'descendant'
+                    },
+                    expandAndCollapse: false,
+                    animationDuration: 550,
+                    animationDurationUpdate: 750
+                }
+            ]
+        }
+        option_tree && myChart_tree.setOption(option_tree);
+        {#通过点击更改右侧的内容#}
+        var categories_graph = [
+            {"name":"节"},
+            {"name":"知识点"},
+            {"name":"题目"},
+        ]
+        var data_graph
+        var links_graph
+        var points_name
+        var tests_name
+        myChart_tree.on('click', function (param){
+            data_graph=[]
+            links_graph = []
+            points_name=[]
+            tests_name=[]
+            {#只有当点击到的是knowledge的时候#}
+            if (param.data['value']!=null){
+                for(i=0;i<data.length;i++){
+                    {#首先找到knowledge#}
+                    if (data[i]['name'] == param.data['name']){
+                        {#插入knowledge节点#}
+                        data_graph.push(data[i])
+                        {#console.log(data_graph.length)#}
+                        {#console.log(data[i])#}
+                    }
+                }
+
+            {#    根据knowledge的名字找到所有对应的边#}
+                for(i=0;i<links.length;i++){
+                    if(links[i]['source']==param.data['name']){
+                        links_graph.push(links[i])
+                        {#把point的名称进行记录#}
+                        points_name.push(links[i]['target'])
+                    }
+                }
+            {#    找到points_name中所有的point#}
+                for(i=0;i<data.length;i++){
+                    {#如果此时这个元素的名字在points_name中，就把它加入到data_graph中#}
+                    if (points_name.indexOf(data[i]['name'])!=-1){
+                        {#插入point节点#}
+                        data_graph.push(data[i])
+                    }
+                }
+            {#    根据Point的名字找到对应的边#}
+                for(i=0;i<links.length;i++){
+                    if(points_name.indexOf(links[i]['source'])!=-1){
+                        links_graph.push(links[i])
+                        {#把point的名称进行记录#}
+                        tests_name.push(links[i]['target'])
+                    }
+                }
+                {#    找到tests_name中所有的test#}
+                for(i=0;i<data.length;i++){
+                    {#如果此时这个元素的名字在tests_name中并且不在data_graph中，就把它加入到data_graph中#}
+                    if (tests_name.indexOf(data[i]['name'])!=-1 && data_graph.indexOf(data[i]['name'])==-1){
+                        {#插入test节点#}
+                        data_graph.push(data[i])
+                    }
+                }
+            {#    把data_graph和links_graph的所有数据更新到graph中#}
+                myChart_graph.clear();
+                option_graph1 = option_graph
+                option_graph1['series'][0].data = data_graph;
+                option_graph1['series'][0].links = links_graph;
+                option_graph1['series'][0].categories = categories_graph;
+                {#console.log(option_graph)#}
+                {#console.log(option_graph1)#}
+                option_graph1 && myChart_graph.setOption(option_graph1);
+            }
+            {#更改右侧关系图现实的内容#}
+{#            首先创建data_graph和links_graph,在data和links中进行搜索#}
+
+            {#console.log('param---->', param);  // 打印出param, 可以看到里边有很多参数可以使用#}
+            {#如果点击的是point，就在下面生成对应的内容#}
+            {#if(param.data['category']==='Point'){#}
+            {# }#}
+        });
+
+    </script>
+    {% endif %}
+{#   这里是弹窗对应的js语句 #}
+    <script>
+        //给定一个值,使点 确定按钮 为 true,点其他为 false
+        var isDelete = false;
+        //显示弹窗函数，设置display为flex,把弹窗显示出来
+        function showPopup(name,nodetype) {
+            {#console.log(name)#}
+            document.getElementById("popup").style.display = "flex";
+            document.getElementById("button_delete").value = name;
+            document.getElementById("button_renew").value=[name,nodetype];
+        };
+        {#当点击完第一个弹窗之后，其就会消失#}
+        function hidePopup(x,nodedata) {
+            document.getElementById("popup").style.display = "none";
+            if (x!=false){
+                //处理冒泡，event 的 cancelable 事件返回一个布尔值
+            // 确定按钮有event参数，不会返回undefined（因为取消和其他区域，没传值 默认undefined）
+                {#console.log(nodedata[0]);#}
+                isDelete = x;
+                {#console.log(x);#}
+                if (x=='delete'){
+                    {#利用ajax方法向后端传递参数#}
+                    let csrf = $("[type='hidden']").val();
+                    {#console.log(csrf);#}
+                    $.post("/teacher/delete_node",{'name':nodedata,'csrfmiddlewaretoken':csrf},function(data){
+                         window.location.href = '/teacher/'
+                    })
+                }
+                if(x=='renew'){
+                    document.getElementById("popup2").style.display = "flex";
+                    {#console.log("修改节点类型为:"+nodedata)#}
+                    {#console.log(nodedata[nodedata.len()-1])#}
+                    nodeinfo = []
+                    nodeinfo = nodedata.split(",");
+                    {#  题目节点则显示对应表单  #}
+                    if(nodeinfo[1] == '题目'){
+                        document.getElementById("popform_knowledgenode").style.display = "none";
+                        document.getElementById("popform_testnode").style.display = "block";
+                        document.getElementById("testnode_name").value = nodeinfo[0];
+                    }
+                    else{
+                        document.getElementById("popform_testnode").style.display = "none";
+                        document.getElementById("popform_knowledgenode").style.display = "block";
+                        document.getElementById("knowledgenode_name").value = nodeinfo[0];
+                    }
+                }
+            }
+        }
+
+        function hidePopup2(x){
+            {#console.log(x)#}
+            if (x==false){
+                document.getElementById("popup2").style.display = "none";
+                document.getElementById("popform_testnode").style.display = "none";
+                document.getElementById("popform_knowledgenode").style.display = "none";
+            }
+            return false;
+        }
+    </script>
+    </div>
+{% endblock %}

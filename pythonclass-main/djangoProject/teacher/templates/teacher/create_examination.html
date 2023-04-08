@@ -1,0 +1,422 @@
+{% extends "teacher/navigate.html" %} {% block mainbody %}
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title></title>
+    <meta charset="utf-8" />
+    <script src="/static/js/echarts.js"></script>
+</head>
+<title>布置试卷</title>
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+            <!--overview start-->
+            <div class="row">
+                <div class="col-md-12">
+                    <h4 class="page-header"><i class="fa fa-search"></i>布置试卷</h4>
+                    <ol class="breadcrumb">
+                        <li><i class="fa fa-home"></i><a href="/teacher">主页</a></li>
+                        <li><i class="fa fa-search"></i>布置试卷</li>
+                    </ol>
+                </div>
+            </div>
+                {% if searchResult %}
+                    <!-- 为ECharts准备一个具备大小（宽高）的左侧树图 -->
+                    <div class = "col-md-12" style="width: 30%;float: left">
+                        <div class="panel panel-default ">
+                            <header class="panel-heading">
+                                知识树图 :
+                            </header>
+                            <div class = "panel-body ">
+                                <div id="tree" style="width: 100%;height:500px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- 为ECharts准备一个具备大小（宽高）的右侧关系图 -->
+                    <div class = "col-md-12" style="width: 70%;float: left">
+                        <div class="panel panel-default ">
+                            <header class="panel-heading">
+                                关系图 :
+                            </header>
+                            <div class = "panel-body ">
+                                <div id="graph" style="width: 100%;height:500px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Footable -->
+                    <div class = "col-md-12" style="float: left;width: 50%">
+                        <div class="panel panel-default">
+                            <header class="panel-heading">
+                             试卷内容:
+                            </header>
+                            <div class = "panel-body" style="height: 250px;overflow-y:auto;" align="center">
+                                <form action="/teacher/view_test" id="examination_paper" class="form-inline" style="padding-left: 10% ; padding-right: 10%" method="post"  >
+                                    {% csrf_token %}
+                                    <input class="btn btn-primary" style="background-color:#4592fe ; padding:6px 38px;" type="submit" value="预览" >
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <div class = "col-md-12" style="float: left;width: 50%">
+                        <div class="panel panel-default">
+                            <header class="panel-heading">
+                             选择题目:
+                            </header>
+                            <div class = "panel-body" style="height: 250px;overflow-y:auto;" align="left">
+                                <ul id="test_list">
+
+                                </ul>
+
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+        </div>
+
+    </div>
+</div>
+
+    <script src="/static/js/jquery-1.8.3.min.js"></script>
+    {% if searchResult %}
+    <script type="text/javascript">
+        var searchResult = {{searchResult|safe}}
+{#        节点类型和半径大小对应的字典#}
+        symbol_dict ={
+            Class:50,
+            Knowledge:40,
+            Theme:30,
+            Point:20,
+            Test:10,
+        }
+        //获得所有的数据
+        var data = [] ;
+        var links = [] ;
+        var EnglishToChinese = {
+            "Class":"课程",
+            "Theme":"章",
+            "Knowledge":"节",
+            "Point":"知识点",
+            "Test":"题目",
+        }
+        var categories = [
+            {"name":"课程"},
+            {"name":"章"},
+            {"name":"节"},
+            {"name":"知识点"},
+            {"name":"题目"},
+        ]
+        {#取当前窗口的高和宽#}
+        var winWidth=document.getElementById("graph").style.width
+        var winHeight=document.getElementById("graph").style.height
+        {#console.log(winWidth+'   '+winHeight)#}
+        var id =0;
+        {#在这里生成节点#}
+        for (var i=0;i<searchResult.length;i++){
+            node = {}
+            node['name'] = searchResult[i]['node_properties']['title']
+            {#在后面添加关系的时候，这个id会引起冲突,所以专门建立了base_id的属性代表是该对象在数据库中的id#}
+            {#node['base_id'] = searchResult[i]['node_properties']['id'].toString()#}
+            node['attributes'] = searchResult[i]['node_properties']['attributes']
+            {#如果说要设置category，需要把它的值设置成categories中的#}
+            node['category'] = EnglishToChinese[searchResult[i]['node_properties']['type']]
+            {#value会显示在侧边的提示框里#}
+{#            根据不同的类型设置不同的symbolSize(节点在图中的大小)#}
+            node['symbolSize'] = symbol_dict[searchResult[i]['node_properties']['type']]
+            node['value'] = symbol_dict[searchResult[i]['node_properties']['type']]
+{#            生成节点之间的关系#}
+            if (Object.keys(searchResult[i]['node_connections'][0]).length != 2) {
+                related_nodes = searchResult[i]['node_connections'][0]['nodes_related']
+                for (var j=0;j<related_nodes.length;j++){
+                    relation = {}
+                    relation['target'] = node['name']
+                    relation['source'] = related_nodes[j]['node_properties']['title']
+                    {#边的数值，可以在力引导布局中用于映射到边的长度#}
+                    relation['value'] = symbol_dict[related_nodes[j]['node_properties']['type']]
+                    links.push(relation)
+                }
+
+            }
+            data.push(node)
+        }
+
+         // 右侧关系图的初始化设置
+        var chartDom_graph = document.getElementById('graph');
+        var myChart_graph = echarts.init(chartDom_graph);
+        var option_graph;
+        option_graph = {
+            title: {
+              text: 'Python数据处理编程',
+              subtext: 'Default layout',
+              top: 'bottom',
+              left: 'right'
+            },
+            tooltip: {trigger: 'item'},
+            animationDurationUpdate: 1500,
+            animationEasingUpdate: 'quinticInOut',
+            legend: [
+              {
+                // selectedMode: 'single',
+                data: categories.map(function (a) {
+                  return a.name;
+                })
+              }
+            ],
+            series: [
+                {
+                    type: 'graph',
+                    layout: 'force',
+                    force: {
+                        {#进行力引导布局前的初始化布局，初始化布局会影响到力引导的效果#}
+                        initLayout:'circular',
+                        {#边的两个节点之间的距离#}
+                        edgeLength: [50,600],
+                        {#节点之间的斥力因子#}
+                        repulsion: 700,
+                        {#节点受到的向中心的引力因子。该值越大节点越往中心点靠拢#}
+                        gravity: 0.8
+                    },
+                    tooltip:{
+                          formatter:function (params) { //在此处直接用 formatter 属性
+                              if (params['dataType']=='node'){
+                                  var showdata = params.data;
+                                  if (showdata['category']!='Class'){
+                                      {#// 根据自己的需求返回数据#}
+                                        return `
+                                                <div>难度：${showdata['attributes']['Difficulty']}</div>
+                                                <div>重要程度：${showdata['attributes']['Importance']}</div>
+                                               `
+                                  }
+                              }
+                              {#var showdata = params.data;#}
+                              {#console.log(params)  // 打印数据#}
+                            }
+                         },
+                    symbolSize: 45,
+                    roam: true,
+                    categories: categories,
+                    draggable:true,
+                    label: {
+                        fontSize:10,
+                        fontweight:'bold',
+                        show: true,
+                        color: "rgba(38, 37, 37, 1)",
+                        position: 'inside',
+                        formatter: '{b}',
+                    },
+                    edgeSymbolSize: [4, 50],
+                    data:data,
+                    links: links,
+                    lineStyle: {
+                      color: 'source',
+                      curveness: 0.6,
+                     },
+                    emphasis: {
+                      focus: 'adjacency',
+                      lineStyle: {
+                        width: 10
+                      }
+                     },
+                }
+            ]
+        } ;
+        // 使用刚指定的配置项和数据显示图表。
+        option_graph && myChart_graph.setOption(option_graph);
+        {#当点击了节点之后,且只能点击point节点，会在选择题目框内#}
+        myChart_graph.on('click', function (param){
+            {#console.log(param.data)#}
+{#            如果点击的是Point#}
+            if (param.data['category']=='知识点'){
+                {#console.log(links)#}
+                {#向test_list中添加内容#}
+                let name_list = []
+                {#首先找到这个Point对应的所有的Test#}
+                for(let i=0;i<links.length;i++){
+                    if (links[i]['source']==param.data['name']){
+                        name_list.push(links[i]['target'])
+                    }
+                }
+                {#console.log(name_list)#}
+                {#然后遍历所有的data找到test,并把test放到选择题目框内#}
+                oUl = document.getElementById('test_list')
+                oUl.innerHTML=''
+                for(let i=0;i<data.length;i++){
+                    if (name_list.indexOf(data[i]['name'])!=-1){
+                        {#把data[i]的attributes的Content和Answer在选择题目框显示#}
+                        console.log(data[i]);
+                        var oLi = document.createElement("li");
+                        oLi.innerHTML = data[i]['attributes']['Content']+'<br>答案是：'+data[i]['attributes']['Answer']+'<br><hr /> ';
+                        oUl.appendChild(oLi);
+                        {#当点击了这个li的时候会在试卷内容中显示对应的题目#}
+                        (function(n){oLi.onclick = function(){
+                            str = "<div>" +
+                                "<input type='text' style='margin-top: 10px;display: none' name='titles' readonly='true'  value="+data[n]['name']+">"+data[n]['name']+
+                                "<br><textarea type='text' style='margin-top: 10px' name='contents' readonly='true'>"+"题目内容："+data[n]['attributes']['Content']+"</textarea>"+
+                                "<textarea type='text' style='margin-top: 10px' name='answers' readonly='true'>"+"答案："+data[n]['attributes']['Answer']+"</textarea>" +
+                                "<button type='button' style='margin-top: 10px' onclick='Delete(this)'>删除</button>"+
+                                ""+
+                                "</div>"
+                            $("#examination_paper").append(str)
+                    　　　　　}
+                      　 })(i)
+                    }
+                }
+
+            }
+        });
+        function Delete(thisE) {
+            thisE.parentNode.innerHTML=''
+            return false
+        }
+
+        {#    生成左侧树的使用数据,有class节点，Theme节点和Knowledge节点#}
+{#        因为class节点只有一个，所以可以手动设置class节点#}
+        tree_data = {
+            name:'Python',
+            children:[]
+        };
+        {#第一次遍历所有的节点，用于生成所有的Theme子节点#}
+        for(i=0;i<searchResult.length;i++){
+            if (searchResult[i]['node_properties']['type']=='Theme'){
+                tree_data['children'].push({
+                    name:searchResult[i]['node_properties']['title'],
+                    children:[]
+                })
+            }
+        }
+        {#第二次遍历所有的节点，用于生成所有的Knowledge子节点#}
+        let class_children = tree_data['children']
+        for(i=0;i<searchResult.length;i++){
+            if (searchResult[i]['node_properties']['type']=='Knowledge'){
+                let father_name = searchResult[i]['node_connections'][0]['nodes_related'][0]['node_properties']['title']
+                for(j=0;j<class_children.length;j++){
+                    if (father_name==class_children[j]['name']){
+                        class_children[j]['children'].push(
+                            { name: searchResult[i]['node_properties']['title'], value: 0 }
+                        )
+                    }
+                }
+            }
+        }
+        {#console.log(tree_data)#}
+        {#    左侧树图的初始化设置#}
+        var chartDom_tree = document.getElementById('tree');
+        var myChart_tree = echarts.init(chartDom_tree);
+        var option_tree;
+        option_tree = {
+            series: [
+                {
+                    roam: 'move',
+                    type: 'tree',
+                    id: 100,
+                    name: 'tree1',
+                    data: [tree_data],
+                    top: '-100%',
+                    left: '8%',
+                    bottom: '-100%',
+                    right: '-10%',
+                    symbolSize: 7,
+                    edgeShape: 'polyline',
+                    edgeForkPosition: '63%',
+                    initialTreeDepth: 2,
+                    lineStyle: {
+                        width: 2,
+                        length:2,
+                    },
+                    label: {
+                        backgroundColor: '#fff',
+                    },
+                    leaves: {
+                        label: {
+                        }
+                    },
+                    emphasis: {
+                        focus: 'descendant'
+                    },
+                    expandAndCollapse: false,
+                    animationDuration: 550,
+                    animationDurationUpdate: 750
+                }
+            ]
+        }
+        option_tree && myChart_tree.setOption(option_tree);
+        {#通过点击更改右侧的内容#}
+        var categories_graph = [
+            {"name":"节"},
+            {"name":"知识点"},
+            {"name":"题目"},
+        ]
+        var data_graph
+        var links_graph
+        var points_name
+        var tests_name
+        myChart_tree.on('click', function (param){
+            data_graph=[]
+            links_graph = []
+            points_name=[]
+            tests_name=[]
+            {#只有当点击到的是knowledge的时候#}
+            if (param.data['value']!=null){
+                for(i=0;i<data.length;i++){
+                    {#首先找到knowledge#}
+                    if (data[i]['name'] == param.data['name']){
+                        {#插入knowledge节点#}
+                        data_graph.push(data[i])
+                        {#console.log(data_graph.length)#}
+                        {#console.log(data[i])#}
+                    }
+                }
+
+            {#    根据knowledge的名字找到所有对应的边#}
+                for(i=0;i<links.length;i++){
+                    if(links[i]['source']==param.data['name']){
+                        links_graph.push(links[i])
+                        {#把point的名称进行记录#}
+                        points_name.push(links[i]['target'])
+                    }
+                }
+            {#    找到points_name中所有的point#}
+                for(i=0;i<data.length;i++){
+                    {#如果此时这个元素的名字在points_name中，就把它加入到data_graph中#}
+                    if (points_name.indexOf(data[i]['name'])!=-1){
+                        {#插入point节点#}
+                        data_graph.push(data[i])
+                    }
+                }
+            {#    根据Point的名字找到对应的边#}
+                for(i=0;i<links.length;i++){
+                    if(points_name.indexOf(links[i]['source'])!=-1){
+                        links_graph.push(links[i])
+                        {#把point的名称进行记录#}
+                        tests_name.push(links[i]['target'])
+                    }
+                }
+                {#    找到tests_name中所有的test#}
+                for(i=0;i<data.length;i++){
+                    {#如果此时这个元素的名字在tests_name中并且不在data_graph中，就把它加入到data_graph中#}
+                    if (tests_name.indexOf(data[i]['name'])!=-1 && data_graph.indexOf(data[i]['name'])==-1){
+                        {#插入test节点#}
+                        data_graph.push(data[i])
+                    }
+                }
+            {#    把data_graph和links_graph的所有数据更新到graph中#}
+                myChart_graph.clear();
+                option_graph1 = option_graph
+                option_graph1['series'][0].data = data_graph;
+                option_graph1['series'][0].links = links_graph;
+                option_graph1['series'][0].categories = categories_graph;
+                {#console.log(option_graph)#}
+                {#console.log(option_graph1)#}
+                option_graph1 && myChart_graph.setOption(option_graph1);
+            }
+            {#更改右侧关系图现实的内容#}
+{#            首先创建data_graph和links_graph,在data和links中进行搜索#}
+
+            {#console.log('param---->', param);  // 打印出param, 可以看到里边有很多参数可以使用#}
+            {#如果点击的是point，就在下面生成对应的内容#}
+            {#if(param.data['category']==='Point'){#}
+            {# }#}
+        });
+
+    </script>
+    {% endif %}
+    </div>
+{% endblock %}
